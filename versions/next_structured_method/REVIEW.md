@@ -2,6 +2,8 @@
 
 日期：2026-09-08。范围仅为 versions/next_structured_method/code 及对应说明；未对原 v9 进行热修补，未启动其恢复或巡检任务。
 
+实现与通过测试的代码提交：[8d93df8244acda5684a9e8ccabc9b57ff886f88c](https://github.com/Courteli/TRACE/commit/8d93df8244acda5684a9e8ccabc9b57ff886f88c)。随后提交仅补记该指纹，不修改实现或测试源码。
+
 ## 结论与审查方式
 
 实现后逐模块自审，随后针对发现的边界问题补回归测试并重新执行全部测试；没有第二位独立审查者。当前没有已知尚未修复的阻断性发现，但 GPU 集成和正式效果仍未验证，不能把自审写成“已证明不存在 bug”。

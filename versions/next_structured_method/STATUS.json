@@ -10,7 +10,7 @@
   "baseline_path": "main/native_v9",
   "documentation_ready": true,
   "implementation_code_present": true,
-  "implementation_commit": null,
+  "implementation_commit": "8d93df8244acda5684a9e8ccabc9b57ff886f88c",
   "code_root": "versions/next_structured_method/code",
   "model_version": "trace-structured-graph-free-v1",
   "data": {
@@ -67,7 +67,7 @@
   "results_available": false,
   "replaces_current_native_v9": false,
   "notes": [
-    "The implementation commit is filled by the immediately following metadata commit; source fingerprints exclude documentation.",
+    "Implementation and tests are pinned to 8d93df8244acda5684a9e8ccabc9b57ff886f88c; this follow-up changes documentation metadata only.",
     "CPU synthetic tests do not establish full-base-model GPU feasibility or method superiority.",
     "Ordinary JSONL replaces dependency-annotated input for this new version only; native-v9 source/data/run are unchanged.",
     "A fresh new-version Stage0/Stage1/Stage2 lineage is required; legacy checkpoints are rejected."
