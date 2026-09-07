@@ -1,125 +1,115 @@
-# 新方法版：统一结构监督与连续策略优化
+# 已实现的无依赖图结构统一方法
 
-状态：设计待实施。以下数学关系、接口和训练日程是计划，不是当前实现或实验结论。概念基线为 `f982ee1`，方法说明基于 2026-09-05 的讨论。
+本文件描述 `code/` 的实际实现及候选默认值。先前设计保留在 Git 提交 `6b5e803`；2026-09-08 收敛后的实现不是原 v9 的热更新。CPU 正确性测试不证明方法性能。
 
-## 1. M1：八 latent 的职责重新收敛
+## 1. 数据和推理的信息边界
 
-拟定角色链：`PLAN → SOLVE1–6 → READOUT`。
+仅使用普通 JSONL 的 `id/question/cot/answer` 四字段。加载器固定文件哈希、数量、唯一 ID / 题目；全数据审计检查 split 间题目不重叠。JSONL 按物理文件行读取，CoT 仅按换行符分步骤，不把 JSON 字符串中的 Unicode 行分隔符误当成新记录。
 
-- PLAN 表达后续求解轨迹的前瞻信息，不直接声称它执行了人类式计划。
-- 六个 SOLVE 按顺序覆盖文本推理转移；共享策略头，但可保留位置/角色嵌入。
-- READOUT 是确定性、可微的面向答案汇总；答案依然读取问题与全部 latent，不将它描述成唯一瓶颈。
-- 不保留缺少错误识别/修正监督支持的 REFINE 主张；若未来研究真正纠错，需另立数据和反馈协议。
+没有依赖矩阵、置信矩阵、图编码器、图压缩分配、图损失或旧 view embedding，也不导入 native-v9 模块。显式锚点保留为轻量输出标签：从普通 CoT 的约 1/3、2/3 进度位置取最多两个步骤，优先提取已有算式，否则取短文本，每条最多 72 字符。短 CoT 去重。它们不是新增图标注。
 
-六是当前总预算八之下的分配，不是推理步骤数的自然常数。未来应以可配置的 solve-role 数推导维度；角色索引、PLAN 输出、mask、奖励、序列化和测试必须一起更新，不能只改名字。拟继续使用 16 维动作和小幅残差，不同步扩大主干。
+训练时 CoT / 答案只用于标签、固定教师目标和奖励。学生 latent 的唯一入口是 `roles(question)`；生成只读取问题、全部 latent 和固定格式头，由模型自己生成锚点及最终 `Answer:` 字段，绝不把金标准锚点当推理输入。答案奖励只解析明确的最终答案字段，不奖励锚点中的偶然正确数字。
 
-原始落点：[role_native.py](../../main/native_v9/src/modules/role_native.py) 的角色常量、RoleTargets、build_role_targets 和策略头；[trace_role_native.py](../../main/native_v9/src/models/trace_role_native.py) 的投影、角色损失和 rollout。
+## 2. 角色与连续动作
 
-## 2. M2：一份目标贯通 SFT、几何和过程评分
+默认八个 latent：PLAN、六个共享策略头的 SOLVE、确定性 READOUT。SOLVE 数可配置，目标、head、mask、奖励和检查点 schema 随之更新；六不是推理步数的自然常数。
 
-使用同一冻结教师的步骤边界状态 h_0, ..., h_m，定义：
+每个随机动作是 16 维对角高斯。各角色输入为：
+
+~~~text
+latent_input_k = bridge(question_state)
+               + 0.1 * learned_query_k
+               + 0.05 * tanh(action_projection(a_k))
+~~~
+
+PLAN / SOLVE 依据前一因果状态和角色位置产生动作。READOUT 使用当前均值，答案解码仍可读取全部 latent，因此它不是唯一信息瓶颈，也不宣称具备没有纠错监督支持的 REFINE 功能。
+
+采样采用原始 softmax、temperature=1，无 top-k / top-p 或隐藏 logits processor。底座及 LoRA dropout 关闭，但训练梯度保持开启。每题先收集完整 G=8 组，再重放并积累梯度；组内及全局 question batch 内不更新参数。
+
+## 3. 同一目标及坐标
+
+本谱系新 Stage0 的 LoRA 教师执行 eval + no_grad。取问题格式头最后 token 状态及每个非空 CoT 步骤最后内容 token 状态（在该步骤换行符之前），统一做无参数 layer_norm，乘固定随机投影 P，得到 h_0,…,h_m。P 默认 256 维、种子 1701，并随检查点保存；学生使用完全相同的归一化和 P。
 
 ~~~text
 delta_j = h_j - h_(j-1)
-d_k = sum(delta_j for j in contiguous interval I_k)
+d_k = sum(delta_j in contiguous, disjoint span I_k)
+c_k = sum_(i<=k) d_i
 sum_k d_k = h_m - h_0
 ~~~
 
-六个区间按顺序且互不重叠，每个文本转移恰好覆盖一次。空区间保留槽位并用 mask 屏蔽；非空但零范数的目标同样要定义 cosine 有效性，不能把零向量解释成明确的方向监督。全空/无有效 CoT 样本需明确拒绝或单独处理。
+区间长度相差最多一，余数分配到前面的 SOLVE；短 CoT 的尾部空槽无监督 mask，非空零向量保留 Huber、关闭其 cosine 项，空 CoT 拒绝。
 
-计划只创建一份目标对象，供以下消费者使用：
+令学生投影状态为 z_PLAN、z_SOLVE1…K、z_READOUT：
 
-1. SOLVE 的分段转移监督。
-2. SOLVE 子链的累计路径/位置/方向等必要几何约束。
-3. RL 的逐角色过程评分。
-4. PLAN 的前瞻目标与 READOUT 的末状态目标。
+- PLAN 预测所有 d_k，是前瞻表示监督，不是对“人类式规划”的证明。
+- SOLVE 第 k 段预测为 z_k - z_(k-1)，其中 z_0=z_PLAN。
+- 累计几何为 z_k - z_PLAN 对齐 c_k，只约束 SOLVE 子链。
+- READOUT 对齐绝对末边界 h_m。
 
-教师端必须统一边界状态提取，不混用末 token 差分和步骤平均表示。学生端也需明确 SOLVE 起点、累计位移和教师坐标/固定投影的对应关系，不能只因张量形状相同就相减。原 BRIDGE 以压缩分配解释全部八位置的路径约束，不原样并行叠加；只保留能由统一目标推导的部分。
+一份 Targets(solve, span_mask, cumulative, end) 同时服务上述损失和过程评分。不存在另一套解释全部八位置的旧 BRIDGE 路径目标。
 
-拟目标字段包括分段转移、有效 mask、累计转移、末边界状态、PLAN 目标和提取元信息；字段名称与实现尚未落地，不是现有 API。
-
-原始落点：[read.py](../../main/native_v9/src/models/read.py) 的教师特征来源、role target 构造，以及 [trace_bridge.py](../../main/native_v9/src/models/trace_bridge.py) 的路径损失。
-
-## 3. M3：冻结教师与固定评分标尺
-
-使用本条实验谱系的 Stage0 模型提取训练 CoT，冻结完整提取过程并缓存必要状态。缓存清单至少记录：
-
-- 版本、schema、训练样本 ID 和数据 SHA-256。
-- 实际教师权重及相关 adapter 的内容哈希、加载配置。
-- tokenizer、特殊 token、截断/格式化、层号和步骤边界规则。
-- 影响目标的归一化/投影参数、执行模式及 dtype。
-- 提取代码提交与张量形状。
-
-当前基线的远端模型 revision 尚未确认，这个来源缺口不能被目录名字掩盖。没有真实教师权重指纹前，不把未来缓存标记为可复现完成。
-
-如果 PLAN 过程评分需要学习得到的头，Stage2 使用冻结的 Stage1 评分副本；应将评分用副本与需要训练的学生预测头分开，避免意外冻结学生或让评分标尺随学生变化。
-
-训练可以使用金标准 CoT 构造监督；实际推理只能使用问题和部署时可获得的信息。不得把金标准步骤、答案或训练用 dependency 注释带入生成输入。固定特征是训练辅助，不是新增推理 oracle。
-
-大规模特征缓存、教师权重不进入 Git；只提交提取器、schema、指纹清单和必要的小型合成测试。相关工具尚未编写。
-
-## 4. M4：SFT 的目标与扰动机制一致
-
-计划采用下列职责分解：
+距离 D 为逐维平均 smooth-L1 加 0.1 倍有效方向的 cosine distance。默认 SFT：
 
 ~~~text
-L_SFT = L_answer + lambda_anchor * L_anchor
-                 + lambda_structure * L_structure
+L_SFT = L_answer + 1.0 L_anchor
+      + 0.08 D_PLAN + 0.12 mean_valid D_SOLVE
+      + 0.14 mean_valid D_cumulative + 0.10 D_READOUT
 ~~~
 
-structure 包含统一定义下的 PLAN、SOLVE、READOUT 和必要 SOLVE 路径约束。保留某项旧辅助损失时，应说明它约束的对象和独立作用，不能因为旧版存在就全部照搬。
+answer / anchor 均按有效 token 求和后除固定 96，不除每条回答自身长度。Stage0 是全文 CoT + Answer 的 token NLL，固定除以 768。上述数值是可测试的候选设置，未声称调参最优。
 
-训练日程：
+## 4. 固定教师、评分头和扰动 SFT
 
-1. 早期以确定性均值路径建立可用的压缩表示。
-2. 后期在部分训练样本上使用与 RL 相同的高斯动作机制。
-3. 扰动阶段固定或严格限制方差，避免以压零探索方差来降低 SFT loss。
-4. Stage2 再按约定放开方差学习，并保留均值路径能力的检查。
+训练 CoT 目标缓存固定；禁止为验证或测试构建训练缓存。清单记录实际 base 权重内容、Stage0 完整检查点、tokenizer、数据、代码、配置、运行库版本、前向 dtype、投影及目标文件哈希；逐样本校验 ID / 题目 / CoT / 答案。任何不匹配拒绝继续。
 
-不再把“不同 view 必须几何分离”作为核心诉求。不另外保留静默无效的旧噪声参数；迁移时应明确弃用、报错或映射，不能接受参数却无效果。
+Stage1 前半程走均值路径，后半程 25% 样本采用同一动作机制、固定标准差 0.12 的高斯扰动。SFT 不训练探索方差；默认 RL 初始标准差也是 0.12，避免阶段切换时无声明地增大噪声。Stage2 再学习 log_std，限制在 [-2.5, 0.5]。
 
-扰动样本比例、开始时点、方差范围和各损失权重尚待确定；本目录没有声称这些超参数已经验证有效。
+Stage2 起点分别复制并冻结 Stage1 的角色策略和 PLAN 评分头；学生 PLAN 预测头仍可训练。二者与教师缓存是三个不同对象，均保存身份，恢复时不重新初始化。
 
-## 5. M5：RL 的任务目标、辅助信号与可微读出
+## 5. GRPO-based 混合目标和有界过程信用
 
-默认六个 SOLVE 时，PLAN 加六个 SOLVE 共七个随机动作；READOUT 为可微的确定性计算：
+每题各轨迹的终局奖励 R 是答案字段的数值 exact match。答案优势为同题组内去均值 / 标准差（分母下界 1e-4）。没有价值网络。
+
+过程分数在 [0,1] 内：
 
 ~~~text
-p_theta(a_1:7, y | q)
-    = product_k pi_theta(a_k | s_k) * p_theta(y | q, a_1:7)
+r_PLAN    = exp(-D_PLAN)            # 固定 Stage1 PLAN 评分头
+r_SOLVE_k = exp(-0.5*(D_SOLVE_k + D_cumulative_k))
+r_READOUT = exp(-D_READOUT)
+U_k = sum_(j>=k) gamma^(j-k) mask_j r_j
+    / sum_(j>=k) gamma^(j-k) mask_j
 ~~~
 
-该分解是要描述的策略结构，不自动证明当前任何按长度平均、标准化、加权的 surrogate 是精确无偏联合策略梯度。
+gamma 默认 0.9；READOUT 分数只出现一次，但进入前序动作的归一化折扣回报。终局答案奖励不放入 U_k，避免重复计数。空监督槽仍可执行动作，其局部过程标签屏蔽；有效后续状态可提供信用。
 
-计划继承验证版的契约：
+过程优势按同题同角色的 U 去均值，再除 max(std,0.1)，截断到 [-2,2]，因此极小差异不会放大到单位尺度。系数 beta 从 0.15 线性降至最后一次更新的 0（单更新 smoke 例外）。只把 beta*A_process 加到随机 latent 优势；答案 token 优势只用 A_answer。
 
-- SFT、rollout、replay 和推理使用统一输入约定。
-- 前七个随机动作固定重放；READOUT 使用当前参数重算，不给它随机策略 loss。
-- 答案采样器与 old/current log-prob 对齐；rollout 概率在本批更新期间保持固定。
-- 先使用单次在线组相对更新；是否以后采用多轮 PPO 是独立设计，不在此偷改。
+~~~text
+L_RL = mean_questions mean_group [
+         sum_valid_token clipped_surrogate(A_answer) / 96
+       + sum_random_role clipped_surrogate(A_answer + beta*A_process)/(K+1)
+       + 0.02 KL_role - 0.001 entropy_role
+       ] + 0.05 mean_questions L_SFT_mean_path
+~~~
 
-过程反馈只表示与参考结构的对齐，不等于推理正确性。拟采用固定教师和固定评分头，限制过程优势尺度，抑制接近数值噪声的组内差异放大，并退火过程项权重。末 READOUT 的状态质量可作为前序动作的辅助反馈；终局答案奖励不重复计入。
+clipped_surrogate 使用 PPO min-ratio 形式，clip epsilon=0.12。Gaussian log-prob 对动作维求和；KL 对动作维及角色取平均，entropy 对动作维求和后对角色取平均。角色 KL 只是在当前前状态上约束固定参考策略，不约束整个答案分布。
 
-与单一参考的距离可能惩罚另一条正确解法；退火并不保证最优策略不变。需要分别记录答案项、过程项、KL 和 replay 的量级/梯度贡献，不能只报告总 loss。
+前 K+1 动作 detach 固定重放，READOUT 用当前参数可微重算；不把 READOUT 算作随机动作。答案 token 记录显式长度和首个 EOS，兼容 PAD=EOS。各项梯度在同一参数快照积累，全局按实际问题数平均，不使用填充样本。
 
-## 6. M6：把 loss 聚合、参考约束和部署行为写清楚
+这是 GRPO-based 的联合离散/连续混合 surrogate，包含确定性参数路径、不同固定尺度、KL、SFT replay 和辅助过程优势；不能宣称是精确无偏联合轨迹策略梯度。在线单次更新时 ratio 初值为 1，clip 通常不实际激活，多轮 PPO 不在本实现内。
 
-拟对有效动作/token 项求和，再按轨迹数与预先固定尺度归一化；latent 与 answer 若采用不同权重，须在公式和配置中写明。避免按每条答案自身长度平均而偷偷引入未声明的 1/length 轨迹权重。
+## 6. 完整谱系、恢复与模型选择
 
-需要测试 PAD 不变性、EOS 有效性、长度权重、组边界和单卡/DDP reduction。变长批次时，分母必须与声明的全局有效数量约定一致。
+默认新 Stage0 3 epoch → 提取固定训练缓存 → Stage1 10 epoch → Stage2 10 epoch（每轮最多 2048 个不放回训练问题）。LoRA rank=64、alpha=32；SFT LR=1e-5、RL LR=5e-7、全局问题 batch=4。完整配置见 code/src/trace_structured/config.py，可通过严格 JSON 覆盖；未知旧参数报错。
 
-Stage1 角色参考 KL 只约束角色动作分布，不直接约束整个回答分布。冻结评分头、教师缓存与角色参考是不同对象，分别保存身份及恢复规则。随机探索与确定性均值推理的差别仍需评估；不能把多个成功 latent 直接平均并假定其均值也成功。
+每次更新按实际全局问题数归一化；分布式训练和验证都不补齐重复题目，空本地末批也参与梯度规约。优化器、日程、固定参考、逐 rank RNG、epoch / offset / step、父检查点和缓存哈希一同保存，精确恢复要求相同 world size / 代码 / 配置 / 基座 / tokenizer / 数据 / 运行库 / 精度。CUDA RNG 仅记录当前 rank 设备，不访问其他卡。
 
-## 7. 后续代码和实施顺序
+Stage1/2 每个完整 epoch 在唯一验证集上评测，记录全部逐题结果和指纹；全程最佳（平分取最早）才是下一阶段父检查点。完成最后 checkpoint 后的 best 标记和汇总可幂等补写。最后执行同一 Stage2 best 的五次单设备、每次 747 unique 验证，并核验整个谱系。五次确定性重复是可重复性检查，不是五个独立统计样本。
 
-本版未来实现根目录为 [code/](code/README.md)。计划包含：
+新目录不覆盖原 v9；旧 checkpoint 显式拒绝。本次不复用旧 Stage0，也不对现有 Stage2 进行热切换。
 
-- 角色/目标模块与共享 schema；边界提取、mask 与闭合性检查。
-- 固定教师缓存提取器、缓存来源校验及数据读取适配。
-- 共用目标的 SFT 角色/几何损失和固定过程评分。
-- 统一高斯扰动调度、RL 重放与 READOUT 梯度路径。
-- 独立模型配置、pipeline、谱系与恢复检查、测试。
+## 7. 尚未解决的研究与工程验证
 
-先落地统一目标及 CPU 合成测试，再建设教师缓存和 SFT，最后接 RL。数据继续使用原固定划分；仅在来源兼容且验证通过时复用原 Stage0 权重，重新训练 Stage1/Stage2。旧 Stage2 checkpoint 不能直接作为新方法下一步续训。
+固定特征对齐仍可能偏爱单一参考解法；退火不是策略不变性证明。固定随机投影的有效性、均值部署与随机探索差距、锚点必要性、角色是否真的学到分工均需实证。
 
-验收见 [ACCEPTANCE.md](ACCEPTANCE.md)。新的坐标/投影细节、权重与日程、缓存资源预算仍是待完成设计项；本次文档不宣称全部实现决策已解决，也不保证新方法一定优于纠正版。
+当前日志有分量 loss、结构项、概率差异、全模型总梯度范数及小型专属 head 梯度探针；探针不是完整模型各损失的全量梯度归因。CPU tiny-Qwen 测试不替代真实底座的 BF16 / CUDA / NCCL / 显存 / 吞吐测试。本版没有正式实验结果，不预断优于原 v9。

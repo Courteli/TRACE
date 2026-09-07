@@ -1,28 +1,75 @@
 {
   "schema_version": 1,
   "version_id": "next_structured_method",
-  "display_name": "结构统一的新方法版",
-  "status": "DESIGN_ONLY",
-  "updated_on": "2026-09-07",
+  "display_name": "无依赖图的结构统一新方法",
+  "status": "IMPLEMENTED_CPU_TESTED",
+  "updated_on": "2026-09-08",
   "design_discussion_date": "2026-09-05",
   "baseline_commit": "f982ee102ca3d29dc0e5c0e8af424c9d896d4050",
+  "initial_design_commit": "6b5e8039060b41721131e322f4e7bed5810c6472",
   "baseline_path": "main/native_v9",
   "documentation_ready": true,
-  "implementation_code_present": false,
+  "implementation_code_present": true,
   "implementation_commit": null,
-  "planned_code_root": "versions/next_structured_method/code",
+  "code_root": "versions/next_structured_method/code",
+  "model_version": "trace-structured-graph-free-v1",
+  "data": {
+    "format": "ordinary_CoT_JSONL",
+    "root": "data/GSM8k-Aug-NL",
+    "fields": [
+      "id",
+      "question",
+      "cot",
+      "answer"
+    ],
+    "dependency_graph_used": false,
+    "split_counts": {
+      "train": 6726,
+      "val": 747,
+      "test": 1319
+    },
+    "historical_data_modified": false
+  },
+  "review": {
+    "status": "SELF_REVIEW_COMPLETED_WITH_REGRESSION_TESTS",
+    "record": "versions/next_structured_method/REVIEW.md",
+    "independent_second_reviewer": false,
+    "known_unfixed_blocking_findings": 0
+  },
   "tests": {
-    "status": "NOT_IMPLEMENTED_OR_RUN",
-    "passed": null
+    "status": "CPU_PASSED",
+    "passed": 29,
+    "failed": 0,
+    "command": "TRACE_PYTHON=/home/dingxukai/miniconda3/envs/ROT/bin/python bash versions/next_structured_method/code/scripts/test_cpu.sh",
+    "environment": {
+      "python": "3.13.5",
+      "torch": "2.6.0",
+      "transformers": "5.5.0",
+      "peft": "0.18.1"
+    },
+    "includes": [
+      "ordinary_data_integrity_and_token_budgets",
+      "tiny_qwen_lora_three_stage_pipeline",
+      "exact_stochastic_sft_and_rl_resume",
+      "two_rank_cpu_gloo_reduction_and_partial_batch",
+      "raw_rollout_replay_logprob_and_readout_gradient",
+      "fixed_cache_reference_and_selection_lineage",
+      "dry_run_without_job_or_model"
+    ],
+    "formal_747_unique_passes_executed": false
   },
   "training": {
-    "status": "NOT_RUN",
-    "run_directory": null
+    "status": "FORMAL_NOT_RUN",
+    "run_directory": null,
+    "cpu_synthetic_fixture_training_executed": true,
+    "gpu_training_started": false
   },
   "results_available": false,
   "replaces_current_native_v9": false,
   "notes": [
-    "This directory contains design documentation and acceptance criteria, not an implemented model.",
-    "Original native-v9 tests/results do not validate this proposed version."
+    "The implementation commit is filled by the immediately following metadata commit; source fingerprints exclude documentation.",
+    "CPU synthetic tests do not establish full-base-model GPU feasibility or method superiority.",
+    "Ordinary JSONL replaces dependency-annotated input for this new version only; native-v9 source/data/run are unchanged.",
+    "A fresh new-version Stage0/Stage1/Stage2 lineage is required; legacy checkpoints are rejected."
   ]
 }

@@ -2,13 +2,13 @@
 
 整理日期：2026-09-07。主版本为 **TRACE Role-Native v9**；历史消融与旧版本分别归档，不与 v9 主实验混用。本仓库从独立副本整理，未改动正在训练的源目录、checkpoint 或进程。
 
-两条后续改进路线已单独归档：**[v9 纠错验证版](versions/v9_correctness_validation/README.md)** 和 **[结构统一的新方法版](versions/next_structured_method/README.md)**。先看 **[两版位置与改进总览](docs/VERSION_ROADMAP.md)**。两版目前均为 `DESIGN_ONLY`：只有方案、预留代码位置和验收清单，尚无改进版实现/测试/结果，不替代当前 v9。
+两条后续路线分别位于 **[v9 纠错验证版](versions/v9_correctness_validation/README.md)** 和 **[无依赖图结构统一版](versions/next_structured_method/README.md)**。截至 2026-09-08，前者仍为 `DESIGN_ONLY`；后者已有独立实现、代码审查和 CPU 回归，为 `IMPLEMENTED_CPU_TESTED`，但尚未正式 GPU 训练、没有效果结论，也不替代当前 v9。先看 **[两版位置与状态总览](docs/VERSION_ROADMAP.md)**。
 
 | 目录 | 内容 |
 | --- | --- |
 | `main/native_v9/` | 当前主代码、模型配置、三阶段训练、严格验证、谱系检查和单元测试 |
 | `versions/v9_correctness_validation/` | v9 纠错验证版方案：输入、梯度、噪声、概率一致性；尚未实现 |
-| `versions/next_structured_method/` | 新方法版方案：统一角色目标、固定教师与同机制 SFT/RL；尚未实现 |
+| `versions/next_structured_method/` | 已实现的无依赖图新方法：普通 CoT、统一目标、固定教师及 SFT/RL；CPU 测试通过，正式训练未运行 |
 | `ablations/legacy_trace_colar/` | 历史 Stage1/Stage2、MultiPath、Trajectory 消融及其配套源码 |
 | `ablations/requested_suite_20260705/` | 历史 no-hard / no-mode / no-filter 队列和几何分析工具 |
 | `archive/` | pre-v9、role-v1、VB-v1/v2/v4/v5/v6/v7/v8 的代码快照；未找到独立 v3 源目录，不补造 |
@@ -39,7 +39,7 @@ bash scripts/test_cpu.sh
 
 完整环境重建记录见 [环境说明](docs/ENVIRONMENT.md)。原项目的旧 `requirements.txt` 含失效的本地 wheel 路径，不能代表当前环境。
 
-## 训练入口（需要自行分配四张空闲 GPU）
+## 原 native-v9 训练入口（需要自行分配四张空闲 GPU）
 
 ```bash
 export TRACE_MODEL_PATH=/absolute/path/to/the/original/base-model
@@ -49,7 +49,9 @@ bash scripts/run_native_v9.sh --dry-run
 bash scripts/run_native_v9.sh /absolute/path/to/a/new/run
 ```
 
-新入口只替换机器路径，不调整模型、损失、数据、batch 或训练阶段。它不会自动占卡或终止其他进程。**不要把当前正在训练的 run 目录作为新实验输出目录。**
+上述 native-v9 便携入口只替换机器路径，不调整模型、损失、数据、batch 或训练阶段。它不会自动占卡或终止其他进程。**不要把当前正在训练的 run 目录作为新实验输出目录。**
+
+无依赖图新方法的入口另见 [独立运行说明](versions/next_structured_method/code/README.md)，不要使用上面的原 v9 命令启动新方法。新方法只读取普通 `gsm8k_*_processed.jsonl`，不读取 `readcot_qsa_qwen_dc`。
 
 ## 重要边界
 
