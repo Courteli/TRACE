@@ -1,0 +1,147 @@
+seed: ~
+
+model:
+  target: src.models.trace_multipath.LitTRACEMultiPathCoLaR
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: colar
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: ~
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    latent_cot_config:
+      ce_weight: 1
+      embed_modeling_weight: 1
+      embed_modeling_loss: mse
+      entropy_weight: 0
+      pred_embed_forward_weight: 0
+      max_compression_factor: 5
+      pred_compressed_cot: True
+      sqrt_mean: True
+
+    latent_policy_config:
+      lp_determinisitc: False
+      lp_intermediate_size: 2048
+
+    latent_generation_config:
+      max_n_latent_forward: 40
+      min_n_latent_forward: 0
+      latent_temperature: 1.0
+      eol_temperature: 1.0
+      compression_factor: 5
+
+    answer_generation_config:
+      max_new_tokens: 16
+      do_sample: False
+
+    do_rl: True
+    rl_config:
+      average_per_token_loss: False
+      random_speed_in_group: False
+      filter_dataset: False
+      exp_batch_size: 1
+      group_size: 8
+      punish_latent_length: False
+      clip_grad_norm: 1.0
+      clip_eps: 0.2
+      use_latent_loss: True
+      use_answer_loss: True
+      n_train_samples_per_epoch: 512
+
+    trace_multipath_config:
+      enable_trace_path_pretraining: True
+      path_pretraining_weight: 0.15
+      path_anchor_count: 3
+      path_direction_mix: 0.30
+      path_step_mix: 0.15
+      path_use_policy_mean: True
+      path_anchor_jitter: 1
+      path_multiview_bootstrap_mix: 0.20
+      stage2_sft_replay_weight: 0.0
+      stage2_all_wrong_replay_multiplier: 0.0
+      all_wrong_numeric_reward_weight: 0.0
+      all_wrong_numeric_reward_clip: 2.0
+      numeric_dense_reward_weight: 0.0
+      numeric_dense_reward_clip: 2.0
+      near_miss_path_bootstrap_weight: 0.0
+      near_miss_path_bootstrap_clip: 2.0
+      near_miss_path_min_span: 0.02
+      near_miss_path_min_score: 0.0
+      near_miss_path_neg_margin: 0.15
+      enable_trace_multipath_reward: True
+      trace_reward_weight: 0.35
+      trace_bonus_clip: 2.0
+      signature_mean_weight: 0.5
+      signature_last_weight: 0.5
+      signature_trend_weight: 1.0
+      signature_delta_weight: 1.0
+      center_path_signature: True
+      path_signature_raw_mix: 0.25
+      max_modes: 3
+      min_positive_modes: 2
+      target_positive_modes: 3
+      mode_merge_threshold: 0.65
+      pos_mode_fit_weight: 0.5
+      pos_pair_repulsion_weight: 0.35
+      pos_pair_margin: 0.75
+      mode_diversity_weight: 0.45
+      mode_balance_weight: 0.20
+      neg_repulsion_weight: 0.8
+      hard_repulsion_weight: 1.4
+      hard_pos_repulsion_weight: 0.25
+      neg_margin: 0.15
+      hard_margin: -0.05
+      hard_threshold: 0.25
+      hard_top_k: 1
+      step_coherence_weight: 0.05
+      noncollapse_weight: 0.05
+      noncollapse_margin: 0.08
+      filter_informative_train_indices: True
+      filter_score_geometry: True
+      filter_candidate_factor: 1.0
+      filter_candidate_count: 0
+      filter_batch_size: 1
+      filter_stop_when_full: True
+      filter_max_batches: 0
+      filter_mixed_fraction: 0.7
+      filter_positive_fraction: 0.9
+      resample_informative_groups: True
+      resample_max_attempts: 3
+      resample_target_score: 1.0
+      freeze_llm_stage2: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1e-6
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: False
+    scheduler:
+      target: constant_schedule_with_warmup
+      warmup_steps: 1000
+
+trainer:
+  max_epochs: 3
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False

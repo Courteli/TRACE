@@ -1,0 +1,28 @@
+{
+  "captured_utc": "2026-09-07T08:53:46.625648+00:00",
+  "python": "3.13.5",
+  "platform": "Linux-4.15.0-213-generic-x86_64-with-glibc2.27",
+  "packages": {
+    "torch": "2.6.0",
+    "torchvision": "0.21.0",
+    "transformers": "5.5.0",
+    "tokenizers": "0.22.2",
+    "lightning": "2.6.1",
+    "pytorch-lightning": "2.6.1",
+    "peft": "0.18.1",
+    "accelerate": "1.13.0",
+    "omegaconf": "2.3.0",
+    "numpy": "2.4.4",
+    "tensorboard": "2.20.0",
+    "torchmetrics": "1.9.0",
+    "safetensors": "0.7.0",
+    "tqdm": "4.67.3",
+    "PyYAML": "6.0.3"
+  },
+  "torch_cuda_build": "12.4",
+  "gpu_and_driver": [
+    "NVIDIA GeForce RTX 3090, 530.30.02, 24576 MiB"
+  ],
+  "full_environment_known_issue": "qwen-vl-utils 0.0.14 requires av, which is not installed. The text-only CPU tests do not import this optional vision path.",
+  "gpu_training_started_by_packaging": false
+}

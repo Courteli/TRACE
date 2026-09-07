@@ -1,0 +1,13 @@
+data_module:
+  target: src.datasets.trace_rationale_set.TraceRationaleSetDataModule
+  dataset_name: gsm
+  dataset_dir: /disk1/dingxukai/trace_colar/run_outputs/trace_final/data/gsm8k_multirationale_v1
+  tiny_dataset: False
+  epoch_scaling: 1
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False

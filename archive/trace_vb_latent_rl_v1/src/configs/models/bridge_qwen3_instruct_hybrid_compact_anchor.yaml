@@ -1,0 +1,128 @@
+seed: ~
+
+model:
+  # Compact-anchor READ-CoT. It uses the same budget-anchor objective, but
+  # renders visible anchors as compact equations instead of full natural
+  # language steps. This is intended to keep the useful two-anchor reasoning
+  # behavior while reducing Output Len toward a CoLaR-like budget.
+  target: src.models.read_stable_efficient.LitREADCoTStableEfficient
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: read-hybrid-compact-anchor
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: ~
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    readcot_config:
+      n_latents: 8
+      answer_loss_weight: 0.0
+      lambda_anchor: 1.0
+
+      lambda_dep: 0.04
+      lambda_res: 0.015
+      dependency_threshold: 0.5
+      center_relation_probs: True
+      negative_edge_confidence: 0.25
+      dep_pos_weight_max: 4.0
+      dep_loss_clamp: 1.5
+
+      detach_explicit_teacher: True
+      explicit_feature_mode: packed
+      implicit_latent_mode: block
+      block_latent_query_scale: 0.1
+
+      aux_warmup_steps: 300
+      aux_decay_start_step: 3000
+      aux_decay_end_step: 9000
+      aux_min_scale: 0.0
+      anchor_warmup_steps: 300
+      anchor_decay_start_step: 12000
+      anchor_decay_end_step: 18000
+      anchor_min_scale: 0.8
+
+      use_hybrid: True
+      use_anchor_loss: True
+      hybrid_seed_anchor_header: True
+      n_anchors: 2
+      anchor_strategy: dependency_critical
+      anchor_alpha: 1.0
+      anchor_beta: 1.0
+      anchor_gamma: 0.2
+      anchor_length_penalty: 0.03
+      anchor_text_mode: compact_equation
+      compact_anchor_max_chars: 72
+
+      relation_hidden_size: 1024
+      bridge_hidden_size: 1024
+      residual_proj_size: 1024
+      normalize_residual_mse: True
+      residual_loss_type: smooth_l1
+      residual_mse_clamp: ~
+      residual_cosine_weight: 0.1
+      dropout: 0.0
+
+    answer_generation_config:
+      max_new_tokens: 96
+      do_sample: False
+
+    hybrid_generation_config:
+      max_new_tokens: 48
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1.0e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: True
+    scheduler:
+      target: cosine_schedule_with_warmup
+      warmup_steps: 600
+      num_training_steps: 18000
+
+trainer:
+  max_epochs: 50
+  max_steps: 18000
+  val_check_interval: 1000
+  gradient_clip_val: 0.3
+
+callbacks:
+  - target: lightning.pytorch.callbacks.ModelCheckpoint
+    save_last: True
+    save_top_k: 1
+    mode: max
+    monitor: monitor
+    auto_insert_metric_name: False
+    filename: "epoch{epoch}__step{step}__monitor{monitor:.3f}"
+    save_weights_only: True
+  - target: lightning.pytorch.callbacks.EarlyStopping
+    monitor: monitor
+    mode: max
+    patience: 8
+    min_delta: 0.001
+    check_on_train_epoch_end: False
+  - target: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False

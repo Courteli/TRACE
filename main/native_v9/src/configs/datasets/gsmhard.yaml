@@ -1,0 +1,9 @@
+data_module:
+  target: src.datasets.gsm8k_aug_nl.GSM8KAugNLDataModule
+  dataset_name: gsmhard
+  dataset_dir: ${oc.env:TRACE_DATA_ROOT}/GSM8k-Hard
+  tiny_dataset: False
+  epoch_scaling: 1
+  train_file: gsmhard_test_processed.jsonl
+  val_file: gsmhard_test_processed.jsonl
+  test_file: gsmhard_test_processed.jsonl

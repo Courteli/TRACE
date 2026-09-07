@@ -1,0 +1,19 @@
+{
+  "schema_version": "trace_vb_v7_validation_behavior_v1",
+  "validation_path": "capability_teacher_all_roles",
+  "epoch_index": 0,
+  "world_size": 4,
+  "accuracy": 0.7228915662650602,
+  "correct_count": 540,
+  "output_length": 30.255689424364125,
+  "unique_questions": 747.0,
+  "unique_predictions": 260.0,
+  "unique_prediction_ratio": 0.34805890227576974,
+  "top1_mode_fraction": 0.038821954484605084,
+  "valid_answer_fraction": 0.9959839357429718,
+  "nonempty_output_fraction": 1.0,
+  "status": "PASS",
+  "exact_correct_required": 540,
+  "minimum_correct_required": 540,
+  "failures": []
+}

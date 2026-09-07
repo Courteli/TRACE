@@ -1,0 +1,9 @@
+data_module:
+  target: src.datasets.gsm8k_aug_nl.GSM8KAugNLDataModule
+  dataset_name: svamp
+  dataset_dir: /home/dingxukai/RoT/data/SVAMP
+  tiny_dataset: False
+  epoch_scaling: 1
+  train_file: svamp_test_processed.jsonl
+  val_file: svamp_test_processed.jsonl
+  test_file: svamp_test_processed.jsonl

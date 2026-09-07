@@ -1,0 +1,189 @@
+seed: ~
+
+model:
+  target: src.models.trace_vb.LitTRACEVB
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: trace-vb-policy
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: sdpa
+    do_trace_rl: False
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    # TRACE-VB keeps the eight-state physical path fixed.  The semantic roles
+    # are PLAN, SOLVE1..5, REFINE (legacy code index CHECK), and deterministic
+    # COMMIT.  Hybrid/anchor branches are disabled: Stage 1 uses one mean path,
+    # one stochastic prior path, and a single answer loss from COMMIT.
+    readcot_config:
+      n_latents: 8
+      answer_loss_weight: 1.0
+      lambda_dep: 0.0
+      lambda_res: 0.0
+      lambda_anchor: 0.0
+      lambda_anchor_gate: 0.0
+      detach_explicit_teacher: True
+      explicit_feature_mode: packed
+      explicit_include_speed_prompt: True
+      implicit_latent_mode: autoregressive-policy
+      use_hybrid: False
+      use_anchor_loss: False
+      use_anchor_gate: False
+      relation_hidden_size: 1024
+      bridge_hidden_size: 1024
+      residual_proj_size: 1024
+      normalize_residual_mse: True
+      residual_loss_type: smooth_l1
+      residual_cosine_weight: 0.1
+      dropout: 0.0
+
+    trace_policy_config:
+      action_dim: 16
+      policy_hidden_size: 512
+      policy_step_embedding_size: 64
+      initial_log_std: -0.7
+      min_log_std: -2.5
+      max_log_std: 0.5
+      action_embedding_scale: 0.10
+      dynamics_step_scale: 0.10
+
+      # Strict causal bottleneck: the answer decoder may read COMMIT only.
+      answer_context_mode: path_only
+
+      # Simplified Stage-1 formation.  No CoT-conditioned posterior and no
+      # compact/hybrid answer branch are permitted in the formal run.
+      stage1_stochastic_paths: 1
+      stage1_posterior_samples: 0
+      stage1_posterior_kl_weight: 0.0
+      stage1_sampled_answer_weight: 0.0
+      stage1_map_compact_weight: 0.0
+      stage1_answer_weight: 1.0
+      semantic_projection_size: 256
+      stage1_plan_forecast_weight: 0.10
+      stage1_solve_weight: 0.20
+      stage1_refine_weight: 0.10
+      stage1_sufficiency_weight: 0.10
+      stage1_minimum_action_std: 0.15
+      stage1_variance_weight: 0.005
+      stage1_minimum_action_efficacy_ratio: 0.02
+      stage1_action_efficacy_weight: 0.02
+      sufficiency_cache_path: /disk1/dingxukai/TRACE/trace_vb_runs/cache/gsm8k_prefix_sufficiency_v1.pt
+      sufficiency_teacher_checkpoint_sha256: 1e58984dcae9dfd6885a2d5a58c8948d2832a7e19ec467273f8f74546bc7aeaa
+      sufficiency_tokenizer_sha256: b8b23250b705d1778c35090c2ba7056811524756334f207b537263647e60f29a
+      sufficiency_prompt_sha256: d899631d75286aec8c79ecc8b6bf82bca9a70e11c721d36ea26da399ce977e4c
+      sufficiency_composite_sha256: f1eb1296b6342e072431e53778e77687aa53016654938695132f328734bdfecb
+      sufficiency_gain_alpha: 1.0
+      sufficiency_gain_clip: 1.0
+      visual_record_limit: 0
+
+    trace_rl_config:
+      group_size: 8
+      n_train_samples_per_epoch: 2048
+      rollout_micro_batch_size: 1
+      exp_batch_size: 1
+
+      use_trajectory_policy_loss: True
+      use_answer_policy_loss: False
+      use_terminal_exact_reward: True
+      use_gae: True
+      use_head_only_ppo: True
+      policy_update_epochs: 4
+      trajectory_clip_epsilon: 0.12
+      stage1_policy_kl_weight: 0.02
+
+      critic_hidden_size: 512
+      critic_role_embedding_size: 64
+      critic_warmup_batches: 256
+      gamma: 1.0
+      gae_lambda: 0.95
+      value_loss_coefficient: 0.5
+      value_loss_type: huber
+      actor_lr: 8.0e-7
+      critic_lr: 1.0e-4
+
+      entropy_coefficient: 0.001
+      role_entropy_weights:
+        - 1.0
+        - 1.0
+        - 1.0
+        - 1.0
+        - 1.0
+        - 1.0
+        - 1.0
+        - 0.0
+      clip_grad_norm: 1.0
+
+      # These legacy shaped rewards are forbidden in TRACE-VB.  Keeping the
+      # explicit zeros in the saved config makes accidental fallback auditable.
+      dense_outcome_weight: 0.0
+      step_reward_weight: 0.0
+      step_reward_discount: 0.0
+      trajectory_length_weight: 0.0
+      target_output_length: 0.0
+
+    answer_generation_config:
+      max_new_tokens: 96
+      do_sample: False
+
+    hybrid_generation_config:
+      max_new_tokens: 48
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1.0e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: True
+    scheduler:
+      target: cosine_schedule_with_warmup
+      warmup_steps: 150
+      num_training_steps: 16820
+
+trainer:
+  max_epochs: 10
+  max_steps: -1
+  val_check_interval: 1.0
+  check_val_every_n_epoch: 1
+  gradient_clip_val: 0.3
+
+callbacks:
+  - target: lightning.pytorch.callbacks.ModelCheckpoint
+    save_last: True
+    save_top_k: 1
+    mode: max
+    monitor: monitor
+    auto_insert_metric_name: False
+    filename: "epoch{epoch}__step{step}__monitor{monitor:.6f}"
+    save_weights_only: False
+  - target: lightning.pytorch.callbacks.EarlyStopping
+    monitor: monitor
+    mode: max
+    patience: 4
+    min_delta: 0.0
+    check_finite: True
+    verbose: True
+  - target: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 0
+  pin_memory: False
+  persistent_workers: False

@@ -1,0 +1,19 @@
+{
+  "schema_version": "trace_vb_v7_validation_behavior_v1",
+  "validation_path": "student_commit",
+  "epoch_index": 0,
+  "world_size": 4,
+  "accuracy": 0.7054886211512718,
+  "correct_count": 527,
+  "output_length": 30.436412315930387,
+  "unique_questions": 747.0,
+  "unique_predictions": 262.0,
+  "unique_prediction_ratio": 0.3507362784471218,
+  "top1_mode_fraction": 0.03748326639892905,
+  "valid_answer_fraction": 0.9959839357429718,
+  "nonempty_output_fraction": 1.0,
+  "status": "PASS",
+  "exact_correct_required": -1,
+  "minimum_correct_required": 449,
+  "failures": []
+}

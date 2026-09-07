@@ -1,0 +1,8 @@
+data_module:
+  target: src.datasets.qsa.QSADataModule
+  
+  # kwargs:
+  dataset_name: gsm
+  dataset_dir: /home/dingxukai/RoT/data/GSM8k-Aug-NL/readcot_qsa_qwen_dc
+  tiny_dataset: False
+  epoch_scaling: 1

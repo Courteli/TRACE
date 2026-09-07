@@ -1,0 +1,2 @@
+# Packaging entry point; original list is in ../../environment/legacy-requirements.txt.
+-r ../../environment/requirements-core.txt

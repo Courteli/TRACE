@@ -1,0 +1,50 @@
+seed: ~
+
+model:
+  target: src.models.cot.LitCot
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: cot
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: ~
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    answer_generation_config:
+      max_new_tokens: 256
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 3e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: False
+    scheduler:
+      target: constant_schedule_with_warmup
+      warmup_steps: 1000
+
+trainer:
+  max_epochs: 3
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False

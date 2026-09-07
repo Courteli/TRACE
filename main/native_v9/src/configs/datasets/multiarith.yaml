@@ -1,0 +1,9 @@
+data_module:
+  target: src.datasets.gsm8k_aug_nl.GSM8KAugNLDataModule
+  dataset_name: multiarith
+  dataset_dir: ${oc.env:TRACE_DATA_ROOT}/Multiarith
+  tiny_dataset: False
+  epoch_scaling: 1
+  train_file: multiarith_test_processed.jsonl
+  val_file: multiarith_test_processed.jsonl
+  test_file: multiarith_test_processed.jsonl

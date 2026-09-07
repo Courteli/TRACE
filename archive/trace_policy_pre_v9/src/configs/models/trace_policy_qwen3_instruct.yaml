@@ -1,0 +1,225 @@
+seed: ~
+
+model:
+  target: src.models.trace_policy.LitTRACEPolicy
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: trace-policy
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: sdpa
+    do_trace_rl: False
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    readcot_config:
+      n_latents: 8
+      answer_loss_weight: 1.0
+      lambda_dep: 0.04
+      lambda_res: 0.0
+      lambda_anchor: 0.0
+      lambda_anchor_gate: 0.0
+
+      dependency_threshold: 0.5
+      center_relation_probs: True
+      negative_edge_confidence: 0.25
+      dep_pos_weight_max: 4.0
+      dep_loss_clamp: 1.5
+
+      detach_explicit_teacher: True
+      explicit_feature_mode: packed
+      explicit_include_speed_prompt: True
+      implicit_latent_mode: autoregressive-policy
+
+      answer_warmup_steps: 300
+      dep_warmup_steps: 300
+      dep_decay_start_step: 9000
+      dep_decay_end_step: 18000
+      dep_min_scale: 0.2
+
+      use_hybrid: True
+      use_anchor_loss: True
+      use_anchor_gate: False
+      hybrid_seed_anchor_header: True
+      n_anchors: 2
+      anchor_strategy: dependency_critical
+      anchor_alpha: 1.0
+      anchor_beta: 1.0
+      anchor_gamma: 0.2
+      anchor_length_penalty: 0.03
+      anchor_text_mode: compact_equation
+      compact_anchor_max_chars: 72
+      anchor_warmup_steps: 300
+      anchor_decay_start_step: 12000
+      anchor_decay_end_step: 18000
+      anchor_min_scale: 0.8
+
+      relation_hidden_size: 1024
+      bridge_hidden_size: 1024
+      residual_proj_size: 1024
+      normalize_residual_mse: True
+      residual_loss_type: smooth_l1
+      residual_cosine_weight: 0.1
+      dropout: 0.0
+
+    trace_policy_config:
+      action_dim: 16
+      policy_hidden_size: 512
+      policy_step_embedding_size: 64
+      posterior_hidden_size: 512
+      posterior_step_embedding_size: 64
+      initial_log_std: -0.7
+      min_log_std: -2.5
+      max_log_std: 0.5
+      posterior_min_log_std: -1.5
+      posterior_max_log_std: 0.5
+      # RMS-normalized action injection. A bounded learned gate prevents the
+      # transition dynamics from silently ignoring a high-entropy action.
+      action_embedding_scale: 1.0
+      dynamics_step_scale: 0.10
+      minimum_action_gate: 0.08
+      maximum_action_gate: 0.40
+      initial_action_gate: 0.20
+      answer_context_mode: path_only
+      require_path_bottleneck: true
+
+      # All four posterior samples are IID and receive the same complete
+      # numerically validated arithmetic-trace target. Their reasoning
+      # diversity is formed only in latent space, never by assigning different
+      # visible target fragments.
+      stage1_posterior_samples: 4
+      stage1_deployment_risk_mix: 0.50
+      stage1_direct_answer_weight: 0.35
+      stage1_compact_weight: 1.0
+      stage1_posterior_kl_weight: 0.05
+      stage1_minimum_action_std: 0.20
+      stage1_entropy_floor_weight: 0.02
+      stage1_action_identifiability_weight: 0.10
+      stage1_action_contrastive_temperature: 0.10
+      # Formal Stage 1 is GPU-only. Four DDP ranks each process one question;
+      # sampled answer branches remain exact token-weighted micro-batches.
+      stage1_posterior_activation_offload: false
+      stage1_offload_cache_release_interval: 0
+      stage1_trajectory_activation_checkpoint: true
+      stage1_answer_activation_checkpoint: true
+      stage1_sampled_answer_micro_batch_size: 1
+      stage1_target_mode: complete_answer_causal_arithmetic_trace
+      compact_target_max_new_tokens: 128
+      corridor_progress_action_dim: 0
+      corridor_progress_action_scale: 1.0
+      corridor_progress_sigma: 0.20
+      corridor_progress_strength: 1.0
+
+      stage1_formation_weight: 0.14
+      stage1_noncollapse_weight: 0.05
+      path_noncollapse_margin: 0.02
+      path_anchor_count: 3
+      path_position_weight: 0.45
+      path_direction_weight: 0.35
+      path_step_weight: 0.15
+
+      visual_record_limit: 0
+
+    trace_rl_config:
+      group_size: 8
+      minimum_group_size: 4
+      maximum_group_size: 8
+      small_group_warmup_epochs: 1
+      n_train_samples_per_epoch: 2048
+      rollout_micro_batch_size: 2
+      exp_batch_size: 2
+
+      use_trajectory_policy_loss: True
+      use_answer_policy_loss: True
+      policy_update_epochs: 1
+      trajectory_clip_epsilon: 0.12
+      answer_clip_epsilon: 0.12
+      stage1_policy_kl_weight: 0.05
+      stage1_policy_kl_target: 0.02
+      stage1_answer_kl_weight: 0.05
+      stage1_answer_kl_target: 0.02
+      answer_policy_weight: 1.0
+      dense_outcome_weight: 0.25
+      minimum_gold_score_std: 0.001
+      minimum_gold_score_gap: 0.002
+      trajectory_clip_grad_norm: 1.0
+      answer_clip_grad_norm: 1.0
+
+      answer_temperature: 0.95
+      answer_top_p: 0.97
+      output_length_penalty_weight: 0.03
+      target_output_length: 33.5
+
+      local_ranking_margin: 0.08
+      max_hard_pairs_per_group: 1
+      local_relation_weight: 0.10
+      local_relation_temperature: 0.08
+      counterfactual_credit_weight: 0.35
+      counterfactual_credit_temperature: 0.10
+      counterfactual_steps_per_pair: 4
+
+    answer_generation_config:
+      max_new_tokens: 96
+      do_sample: False
+
+    hybrid_generation_config:
+      max_new_tokens: 128
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1.0e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: True
+    scheduler:
+      target: cosine_schedule_with_warmup
+      warmup_steps: 150
+      num_training_steps: 16820
+
+trainer:
+  max_epochs: 10
+  max_steps: -1
+  val_check_interval: 1.0
+  check_val_every_n_epoch: 1
+  gradient_clip_val: 0.3
+
+callbacks:
+  - target: lightning.pytorch.callbacks.ModelCheckpoint
+    save_last: True
+    save_top_k: 1
+    mode: max
+    monitor: monitor
+    auto_insert_metric_name: False
+    filename: "epoch{epoch}__step{step}__monitor{monitor:.6f}"
+    save_weights_only: False
+  - target: lightning.pytorch.callbacks.EarlyStopping
+    monitor: monitor
+    mode: max
+    patience: 4
+    min_delta: 0.0
+    check_finite: True
+    verbose: True
+  - target: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False

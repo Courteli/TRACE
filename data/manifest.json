@@ -1,0 +1,110 @@
+{
+  "files": [
+    {
+      "path": "data/GSM8k-Aug-NL/example_test_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/example_test_processed.jsonl",
+      "bytes": 879,
+      "records": 2,
+      "sha256": "8b7f13a24774d03f0091cb7f251f0a9ee098f90977da5053f803ed8e6943869e"
+    },
+    {
+      "path": "data/GSM8k-Aug-NL/example_train_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/example_train_processed.jsonl",
+      "bytes": 2790,
+      "records": 6,
+      "sha256": "41d46e097a3c98fb5994fa750ad38b3f035fb6b12a1999b0d2aa2d10d1df39c1"
+    },
+    {
+      "path": "data/GSM8k-Aug-NL/gsm8k_test_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/gsm8k_test_processed.jsonl",
+      "bytes": 711829,
+      "records": 1319,
+      "sha256": "5395be51d54d7af531883af873e130d3f280a7e5d9aaf849e7c20ed356e3847b"
+    },
+    {
+      "path": "data/GSM8k-Aug-NL/gsm8k_train_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/gsm8k_train_processed.jsonl",
+      "bytes": 3566502,
+      "records": 6726,
+      "sha256": "31e256348cb35ef34bb63c66339a2b8483be44896547c2644d31c0d92e56540c"
+    },
+    {
+      "path": "data/GSM8k-Aug-NL/gsm8k_val_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/gsm8k_val_processed.jsonl",
+      "bytes": 394829,
+      "records": 747,
+      "sha256": "c9ef2ef23b44ea661577e5eb02456738b02a133d70a8b29e57adf86342da0b4f"
+    },
+    {
+      "path": "data/GSM8k-Aug-NL/readcot_qsa_qwen_dc/test.json",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/readcot_qsa_qwen_dc/test.json",
+      "bytes": 1326477,
+      "records": 1319,
+      "sha256": "b11fb7935f2a255e933bc13b83074f9c9ce9dbe24d7a50ea48ee6285bacda167"
+    },
+    {
+      "path": "data/GSM8k-Aug-NL/readcot_qsa_qwen_dc/train.json",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/readcot_qsa_qwen_dc/train.json",
+      "bytes": 6662716,
+      "records": 6726,
+      "sha256": "a4d2cf14868fb96870f77be9b775e2bafa8912ff8d799977cea3ed7884558c97"
+    },
+    {
+      "path": "data/GSM8k-Aug-NL/readcot_qsa_qwen_dc/val.json",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Aug-NL/readcot_qsa_qwen_dc/val.json",
+      "bytes": 726804,
+      "records": 747,
+      "sha256": "5f2ddd39f09f95d834a1b2840ce12d9fd2461bc909a755f1b8c429497bdfa49b"
+    },
+    {
+      "path": "data/GSM8k-Hard/gsmhard_test_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Hard/gsmhard_test_processed.jsonl",
+      "bytes": 1144334,
+      "records": 1319,
+      "sha256": "1be1583e414efb8cf2485f219bf997de1e1e6824a83f24a74405de7183a73119"
+    },
+    {
+      "path": "data/GSM8k-Hard/readcot_qsa_test/test.json",
+      "source": "/home/dingxukai/RoT/data/GSM8k-Hard/readcot_qsa_test/test.json",
+      "bytes": 7315872,
+      "records": 1319,
+      "sha256": "d7ba5690bf10a2e797bc4daa24ce8d0e80a32e42f0e4e96695401c13c1e9784e"
+    },
+    {
+      "path": "data/Multiarith/multiarith_test_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/Multiarith/multiarith_test_processed.jsonl",
+      "bytes": 51010,
+      "records": 180,
+      "sha256": "461cc3e2a3eb4609015f86a3d75572ae9c93a11f01a2f0ec7351224aa752b9b4"
+    },
+    {
+      "path": "data/Multiarith/multiarith_train_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/Multiarith/multiarith_train_processed.jsonl",
+      "bytes": 118641,
+      "records": 420,
+      "sha256": "4b60c4b22eb541735b9bc4d913cc0a07d7756b1c3db3760d03b53c152c2a43a6"
+    },
+    {
+      "path": "data/Multiarith/readcot_qsa_test/test.json",
+      "source": "/home/dingxukai/RoT/data/Multiarith/readcot_qsa_test/test.json",
+      "bytes": 81252,
+      "records": 180,
+      "sha256": "fa94ff68786e01b61e4062b185f9ba35729d694b353fd8fbc054b96f2bec94c8"
+    },
+    {
+      "path": "data/SVAMP/readcot_qsa_test/test.json",
+      "source": "/home/dingxukai/RoT/data/SVAMP/readcot_qsa_test/test.json",
+      "bytes": 446633,
+      "records": 1000,
+      "sha256": "dbafd0168d0475fef0c873d5378f1d2a2597e046b207093142d849c7e0751d51"
+    },
+    {
+      "path": "data/SVAMP/svamp_test_processed.jsonl",
+      "source": "/home/dingxukai/RoT/data/SVAMP/svamp_test_processed.jsonl",
+      "bytes": 278631,
+      "records": 1000,
+      "sha256": "0fad09568d6fc5f8c0efb9139477d0d560cf54954e353400fd1bff6cdec3f6f3"
+    }
+  ],
+  "total_bytes": 22829199
+}

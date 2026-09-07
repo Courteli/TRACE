@@ -1,0 +1,72 @@
+{
+  "source_directory": "/home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct",
+  "remote_repository": null,
+  "remote_revision": null,
+  "files": [
+    {
+      "path": "models/base_reference/LICENSE",
+      "bytes": 11343,
+      "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+    },
+    {
+      "path": "models/base_reference/config.json",
+      "bytes": 727,
+      "sha256": "5beea1a4a34c62782bfb2f911c606741a3bab8f92d80a118fa053c28af12e8ba"
+    },
+    {
+      "path": "models/base_reference/configuration.json",
+      "bytes": 73,
+      "sha256": "f888421726665e8a84b738eed42a64875aed79de8be7daade851ac8bf4c0cef9"
+    },
+    {
+      "path": "models/base_reference/generation_config.json",
+      "bytes": 238,
+      "sha256": "835fffe355c9438e7a25be099b3fccaa98350b83451f9fd2d99512e74f1ade48"
+    },
+    {
+      "path": "models/base_reference/merges.txt",
+      "bytes": 1671839,
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+    },
+    {
+      "path": "models/base_reference/model.safetensors.index.json",
+      "bytes": 32819,
+      "sha256": "d6c42883a895dfef5b0080ed2116a1bcd764f558406b98923d675978a1abf29c"
+    },
+    {
+      "path": "models/base_reference/tokenizer.json",
+      "bytes": 11422654,
+      "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+    },
+    {
+      "path": "models/base_reference/tokenizer_config.json",
+      "bytes": 9377,
+      "sha256": "a62ff0a2472a0fa1b8eaabcb57c59b58afa42a22831dc141400b6e0cf2b65ce3"
+    },
+    {
+      "path": "models/base_reference/vocab.json",
+      "bytes": 2776833,
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    }
+  ],
+  "excluded_weights": [
+    {
+      "name": "model-00001-of-00003.safetensors",
+      "bytes": 3957900840,
+      "sha256": null,
+      "note": "Excluded from Git; weight content hashes not computed in this lightweight packaging task."
+    },
+    {
+      "name": "model-00002-of-00003.safetensors",
+      "bytes": 3987450520,
+      "sha256": null,
+      "note": "Excluded from Git; weight content hashes not computed in this lightweight packaging task."
+    },
+    {
+      "name": "model-00003-of-00003.safetensors",
+      "bytes": 99630640,
+      "sha256": null,
+      "note": "Excluded from Git; weight content hashes not computed in this lightweight packaging task."
+    }
+  ]
+}

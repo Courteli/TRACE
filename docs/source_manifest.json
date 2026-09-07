@@ -1,0 +1,777 @@
+{
+  "created_utc": "2026-09-07T08:49:09.817701+00:00",
+  "main_source_root": "/home/dingxukai/TRACE/trace_role_bridge_native_v9",
+  "scope": "Selected code files only: no checkpoints, logs, caches, credentials or donor git history. Tree hashes cover the copied relative-path/file-hash inventory, not the entire original workspace.",
+  "files": [
+    {
+      "path": "main/native_v9/README.md",
+      "source_relative": "README.md",
+      "source_sha256": "971ae7822c2d0f9989982347376eafd067dfdc73dc4c5c464c6dce603871c14b",
+      "snapshot_sha256": "e6e42358d93f675e7cedd5275407440695ebf6136a115e5d643d53802e26d0ca",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/requirements.txt",
+      "source_relative": "requirements.txt",
+      "source_sha256": "56031aae2d9e3291a94dc26257dcec10589d99acf8918ee1c7479473f563ba93",
+      "snapshot_sha256": "7509ea164b0f99c9ebd2ee819bfa86aeeccae8cd379b7e63c34c04c10c86d56f",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/run.py",
+      "source_relative": "run.py",
+      "source_sha256": "1179b46920f1bb49819b98b2f99c3becfca5ce36615ce4177d3c759aca9ddfe6",
+      "snapshot_sha256": "1179b46920f1bb49819b98b2f99c3becfca5ce36615ce4177d3c759aca9ddfe6",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/observe_gpu_lease.py",
+      "source_relative": "scripts/observe_gpu_lease.py",
+      "source_sha256": "0e01a9c124bc3b1a500149832b31bce564ff8eb302532516c880fb3be4d6c122",
+      "snapshot_sha256": "0e01a9c124bc3b1a500149832b31bce564ff8eb302532516c880fb3be4d6c122",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/protect_gpu_lease.sh",
+      "source_relative": "scripts/protect_gpu_lease.sh",
+      "source_sha256": "4077a7716f9c1d77678d3bb61809dcf397d93aff2b27d372ae06002f33aaa131",
+      "snapshot_sha256": "4077a7716f9c1d77678d3bb61809dcf397d93aff2b27d372ae06002f33aaa131",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/run_full_native_v9.sh",
+      "source_relative": "scripts/run_full_native_v9.sh",
+      "source_sha256": "a10564db8156d5c400705f29da5ab941f4b3149ae1b366ccd8250456b34fafc7",
+      "snapshot_sha256": "2b474431d6529da116478f6d54f12ec379d7b100562d7f384f2f78cba7e6991f",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/scripts/run_gpu_reservation_experiment.sh",
+      "source_relative": "scripts/run_gpu_reservation_experiment.sh",
+      "source_sha256": "e1456c8c38ee2939ca4377f9de15d905c152208682949db39ef5466d1cce4d7a",
+      "snapshot_sha256": "e1456c8c38ee2939ca4377f9de15d905c152208682949db39ef5466d1cce4d7a",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/select_best_checkpoint.py",
+      "source_relative": "scripts/select_best_checkpoint.py",
+      "source_sha256": "6262d94187905bf09bb860487c3c7f145f0e1ea4c1241715e44ecd74b97ad03d",
+      "snapshot_sha256": "6262d94187905bf09bb860487c3c7f145f0e1ea4c1241715e44ecd74b97ad03d",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/select_last_checkpoint.py",
+      "source_relative": "scripts/select_last_checkpoint.py",
+      "source_sha256": "e9e1fb514f9eb656a85b01072c71adf806dcc758ac2c593a3d1171d75e6bab9d",
+      "snapshot_sha256": "e9e1fb514f9eb656a85b01072c71adf806dcc758ac2c593a3d1171d75e6bab9d",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/verify_lineage.py",
+      "source_relative": "scripts/verify_lineage.py",
+      "source_sha256": "02b28b2331f823aabbe820d645e3bd25a1423bc7b7fb5b9b28e38c11500545f8",
+      "snapshot_sha256": "02b28b2331f823aabbe820d645e3bd25a1423bc7b7fb5b9b28e38c11500545f8",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/wait_for_current_run_strict_validation.sh",
+      "source_relative": "scripts/wait_for_current_run_strict_validation.sh",
+      "source_sha256": "4c391e9d14612e6a3b61be78c7f2a49894753c87ad6a00d1e6956f342acf864c",
+      "snapshot_sha256": "4c391e9d14612e6a3b61be78c7f2a49894753c87ad6a00d1e6956f342acf864c",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/wait_for_four_and_run.sh",
+      "source_relative": "scripts/wait_for_four_and_run.sh",
+      "source_sha256": "9f1575fc4b903fd1ad327aed9abff8a80c9d910fc0afc8cb24068fc0742bc9c6",
+      "snapshot_sha256": "9f1575fc4b903fd1ad327aed9abff8a80c9d910fc0afc8cb24068fc0742bc9c6",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/scripts/watch_native_v9_runtime.sh",
+      "source_relative": "scripts/watch_native_v9_runtime.sh",
+      "source_sha256": "1c689a1873cd47a76c9bd9630e78afda9cf2379717bd353bb8c5c11f5cc71afc",
+      "snapshot_sha256": "1c689a1873cd47a76c9bd9630e78afda9cf2379717bd353bb8c5c11f5cc71afc",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/__init__.py",
+      "source_relative": "src/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/configs/datasets/gsm8k_aug_nl.yaml",
+      "source_relative": "src/configs/datasets/gsm8k_aug_nl.yaml",
+      "source_sha256": "b5b36ec0579ca9627e928ffa84785c33e2b76f5f59d1ab9c01b46070a0783e02",
+      "snapshot_sha256": "a52af0b5fcd4e54a2c47d4261a8b59f9449d36ddb470b40a0558e63a85d2c965",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/datasets/gsmhard.yaml",
+      "source_relative": "src/configs/datasets/gsmhard.yaml",
+      "source_sha256": "615744520d477a8d7fd3e3ade76b38d9103534ff0c4ba80bfc404b701e6380bf",
+      "snapshot_sha256": "7830f57af296673dff279850e38a5931be3bf9a1d0c5eef7063b8d1613c2ae91",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/datasets/multiarith.yaml",
+      "source_relative": "src/configs/datasets/multiarith.yaml",
+      "source_sha256": "b3c1c1b34dca2089c4b8263ec9283a5f499263e2f21093591b40765e59ebe2ce",
+      "snapshot_sha256": "256caddc6f37dec6fffb2e083d9459c667209516edc8d76b3bb56c76dc45c552",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/datasets/qsa.yaml",
+      "source_relative": "src/configs/datasets/qsa.yaml",
+      "source_sha256": "f6162a9fd0a0264b47672bc0f494fe55ec0b45a1cb9505fe888f3f9bd7e036a3",
+      "snapshot_sha256": "b9aa60e5a7ebe6a17c9247806b3598b1cc2ec3d29895d7d6d681c624e1be2c21",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/datasets/svamp.yaml",
+      "source_relative": "src/configs/datasets/svamp.yaml",
+      "source_sha256": "28f7611b90b23ff31d695d268d9837139bbca2678e0a923617dd8778b9fb58bc",
+      "snapshot_sha256": "aed759dc7b466f0c82451bc1e7d73448a9282ac7f94661183f1b54bdaa301dc3",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/bridge_qwen3_instruct_hybrid_compact_anchor.yaml",
+      "source_relative": "src/configs/models/bridge_qwen3_instruct_hybrid_compact_anchor.yaml",
+      "source_sha256": "1d94ba9f1c483f27f951b6aff8ef1ba898604660522a4c4828157f7826725099",
+      "snapshot_sha256": "6738f7b4c0b5f1273afe597aa4f4ab069b05a32a2dfb9051a4255f2f82b44ecd",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/bridge_qwen3_instruct_hybrid_compact_anchor_gate.yaml",
+      "source_relative": "src/configs/models/bridge_qwen3_instruct_hybrid_compact_anchor_gate.yaml",
+      "source_sha256": "0b9a66e81d626fd41835bd1d72cf948ee9f0673125aa69bb35513d584245a20f",
+      "snapshot_sha256": "ee434b3c2d71a58846525d5d21073221f435e2857dd109bac4ac505927b6e36e",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/coconut.yaml",
+      "source_relative": "src/configs/models/coconut.yaml",
+      "source_sha256": "83e39eb9f4aa18f73811e6d825ee20870ff1e117ab9be5c8cc44755471cb6b6d",
+      "snapshot_sha256": "83e39eb9f4aa18f73811e6d825ee20870ff1e117ab9be5c8cc44755471cb6b6d",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/configs/models/coconut_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/coconut_qwen3_instruct.yaml",
+      "source_sha256": "dcdc66f10c882f463a4b3cb2b04b4bb89786dfd4e5bd494baa806cc3b55a4279",
+      "snapshot_sha256": "3d8bfb63bab7c31fd31511b149a7728e52c51917f42f1ad9d92ca76f8ea5a0f3",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/colar.yaml",
+      "source_relative": "src/configs/models/colar.yaml",
+      "source_sha256": "b6ead6777c331381c0bfbae9555bc6a003291ac2982571f109e146caf5d22753",
+      "snapshot_sha256": "b6ead6777c331381c0bfbae9555bc6a003291ac2982571f109e146caf5d22753",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/configs/models/colar_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/colar_qwen3_instruct.yaml",
+      "source_sha256": "53308d5511c165a0a967a76edf462eed1427cc85752bec3a7f7a3ce9742356ad",
+      "snapshot_sha256": "2410a43262a8891abef5c1ebf52181af2cfcbcce9efd0748b0be715967ccfea4",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/colar_qwen3_onelatent.yaml",
+      "source_relative": "src/configs/models/colar_qwen3_onelatent.yaml",
+      "source_sha256": "73b1254e92cd1045b72b70ac9ecdde3de783f2d86af40f51e30d5f8c5aa5a353",
+      "snapshot_sha256": "95ff942d0b1ba896e00a47665c177c8485b1a8e6cc2db81deeb6789876e2aaac",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/colar_qwen3_oneshot_compiler.yaml",
+      "source_relative": "src/configs/models/colar_qwen3_oneshot_compiler.yaml",
+      "source_sha256": "791aad4e5b2b88e148c59a86a479d2430eb3645ec291aec80b43860778010da8",
+      "snapshot_sha256": "4abc23926e746837ea00dcf95e8628483f876b21b4a145d2c0d16be3abd7ee36",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/cot.yaml",
+      "source_relative": "src/configs/models/cot.yaml",
+      "source_sha256": "4d288c4f6878e9cf725072643a2bb86635ab2bf61038bd3cec41df88f0ff7a9a",
+      "snapshot_sha256": "4d288c4f6878e9cf725072643a2bb86635ab2bf61038bd3cec41df88f0ff7a9a",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/configs/models/cot_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/cot_qwen3_instruct.yaml",
+      "source_sha256": "61979f481c8feff1126ef3d610d7f9a04c4d4b2d60738111956a2f1e9ec10a5b",
+      "snapshot_sha256": "17e7619c1159930dd8877c100f6a705835a71fd7b4cfe9fc387d798d886f64dc",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/distill.yaml",
+      "source_relative": "src/configs/models/distill.yaml",
+      "source_sha256": "3059484fd9008b76c337d695dbd0c1e6c81e2e63a38dfdf853ab8135af8df588",
+      "snapshot_sha256": "3059484fd9008b76c337d695dbd0c1e6c81e2e63a38dfdf853ab8135af8df588",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/configs/models/distill_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/distill_qwen3_instruct.yaml",
+      "source_sha256": "a69816f588ed15337513964ae959ea12b1d5aef705e7c16538233c0c482dfced",
+      "snapshot_sha256": "fc300f55a8091cf425dca3fe71b165782d2fa7a09abc8c6562ab6da6ddf8c2f3",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/icot.yaml",
+      "source_relative": "src/configs/models/icot.yaml",
+      "source_sha256": "422d4b39dbe99ccb8b0fa1bce157dc0bc26aa728b050851b4ed827f27b487094",
+      "snapshot_sha256": "422d4b39dbe99ccb8b0fa1bce157dc0bc26aa728b050851b4ed827f27b487094",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/configs/models/icot_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/icot_qwen3_instruct.yaml",
+      "source_sha256": "cec446c693f3cd49999e9c29864488474ca929dd3ab0b5a3bbebd905cd15a5d7",
+      "snapshot_sha256": "6872a1c2be77c126997bd4cf2fd4ff7ba925815b9111002700f64e33693dce87",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_bridge_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/trace_bridge_qwen3_instruct.yaml",
+      "source_sha256": "9de8356c6228b816b651d6fb8558b2a40b869148ff4e75d8d5002b69e839a543",
+      "snapshot_sha256": "b7862555b7bf7af563b37776536e49defa1fb03b25fd97899839425a2757d231",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_bridge_qwen3_instruct_structmv.yaml",
+      "source_relative": "src/configs/models/trace_bridge_qwen3_instruct_structmv.yaml",
+      "source_sha256": "f613d06a6a388246094b64b5eba13ce7054c5bf6227641db326c33cb1d3df00c",
+      "snapshot_sha256": "10865b5259d009a53788ae89f1e25bc70ceda21fca5e81a708271dd478e148c2",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_bridge_qwen3_instruct_viewteacher.yaml",
+      "source_relative": "src/configs/models/trace_bridge_qwen3_instruct_viewteacher.yaml",
+      "source_sha256": "e5711b1264e4097bc7b09b66acedd72c975ba629ed47f39bf901997f95031c3d",
+      "snapshot_sha256": "6c544727edf6c2f9a179aee591da440e2ee0f7e1e4442c3254fd6b65e6766846",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_bridge_qwen3_instruct_vizstrong.yaml",
+      "source_relative": "src/configs/models/trace_bridge_qwen3_instruct_vizstrong.yaml",
+      "source_sha256": "91dcd9c3944bb75ab1970dab6fa6b24e5886c6e46c0de710b4f842102274c58a",
+      "snapshot_sha256": "ebc7fa90046be774c78a6e9e0b3d80ace6af2e257e36d92b8bf1a84511a9b962",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_colar_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/trace_colar_qwen3_instruct.yaml",
+      "source_sha256": "d782ec2a7d294c835ec9591bac8ced440a32506c4bd8d6a7f7877f43838c1daf",
+      "snapshot_sha256": "88cbdda15e83c740c4d5a3d537c4190b49a2bce7329e949ed94c4f7cef698137",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_multipath_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/trace_multipath_qwen3_instruct.yaml",
+      "source_sha256": "2cf1fc1e1ee4ddbbddafc9eaf7adcac19b3f589bd86a010de6031070a10d419f",
+      "snapshot_sha256": "ad6906ecc163e8e6ac1a66866891aa5e1f1dbb1384653786825a648890395436",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_role_native_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/trace_role_native_qwen3_instruct.yaml",
+      "source_sha256": "48aa230f0f7ce13a9e5cb5adb20158bec99144ccc5d9faae41922c6e66a622c0",
+      "snapshot_sha256": "d5c8995094c9181969ce4be9933b43e48945ce162bfecd9811e735a44ee31cfd",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/models/trace_trajectory_qwen3_instruct.yaml",
+      "source_relative": "src/configs/models/trace_trajectory_qwen3_instruct.yaml",
+      "source_sha256": "7fa41b67046a88423b2eef71311360a5cdd2805d29245d1ba2a5105e56b67597",
+      "snapshot_sha256": "32e268b81ecb27b447d4aff25ba5665461dedb29f356c3286bf07b09efc1d674",
+      "core_method": false,
+      "packaging_modified": true
+    },
+    {
+      "path": "main/native_v9/src/configs/trainer/default.yaml",
+      "source_relative": "src/configs/trainer/default.yaml",
+      "source_sha256": "3ea6c027b45ccfe4cc08134a43d9943ed385eb5fd2ab250f6ab382841bca0bc1",
+      "snapshot_sha256": "3ea6c027b45ccfe4cc08134a43d9943ed385eb5fd2ab250f6ab382841bca0bc1",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/configs/trainer/trace_stage1_patience4.yaml",
+      "source_relative": "src/configs/trainer/trace_stage1_patience4.yaml",
+      "source_sha256": "db1febeec85d7c453aa8adab9adb5b1c4a694ca4a811cce76cd7ce5ea9eec382",
+      "snapshot_sha256": "db1febeec85d7c453aa8adab9adb5b1c4a694ca4a811cce76cd7ce5ea9eec382",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/datasets/__init__.py",
+      "source_relative": "src/datasets/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/datasets/dataset_base.py",
+      "source_relative": "src/datasets/dataset_base.py",
+      "source_sha256": "59eefaee1392acac8aa57d2118c9168f7f138fc03a9be1abbc93d021ec4a3763",
+      "snapshot_sha256": "59eefaee1392acac8aa57d2118c9168f7f138fc03a9be1abbc93d021ec4a3763",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/datasets/gsm8k_aug_nl.py",
+      "source_relative": "src/datasets/gsm8k_aug_nl.py",
+      "source_sha256": "601f973462cd43c248702b8ec8f89e067cd85f8f8de1523a139b2adccf43afbc",
+      "snapshot_sha256": "601f973462cd43c248702b8ec8f89e067cd85f8f8de1523a139b2adccf43afbc",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/datasets/qsa.py",
+      "source_relative": "src/datasets/qsa.py",
+      "source_sha256": "b329cd486f0ad3c338c264f57cd88b4b88a46b914f5230aa3991b4a8aa5ceac1",
+      "snapshot_sha256": "b329cd486f0ad3c338c264f57cd88b4b88a46b914f5230aa3991b4a8aa5ceac1",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/losses/__init__.py",
+      "source_relative": "src/losses/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/metrics/__init__.py",
+      "source_relative": "src/metrics/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/__init__.py",
+      "source_relative": "src/models/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/coconut.py",
+      "source_relative": "src/models/coconut.py",
+      "source_sha256": "c8c2db2b6f529c11f3118c7eb045b2786479fa2959910ca401165841980700e5",
+      "snapshot_sha256": "c8c2db2b6f529c11f3118c7eb045b2786479fa2959910ca401165841980700e5",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/colar.py",
+      "source_relative": "src/models/colar.py",
+      "source_sha256": "ec47a4642b47a01bfb7bfb23f6959d1c58a78bd30fa97652db67ed6a123b9021",
+      "snapshot_sha256": "ec47a4642b47a01bfb7bfb23f6959d1c58a78bd30fa97652db67ed6a123b9021",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/colar_onelatent.py",
+      "source_relative": "src/models/colar_onelatent.py",
+      "source_sha256": "afc0b49c3a44c188cff8a2211b1cb58e6fa4d73a0494381bb755a2b2b077bcf5",
+      "snapshot_sha256": "afc0b49c3a44c188cff8a2211b1cb58e6fa4d73a0494381bb755a2b2b077bcf5",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/colar_oneshot_compiler.py",
+      "source_relative": "src/models/colar_oneshot_compiler.py",
+      "source_sha256": "7a5e8ae1f188e86ebed97abb09f9e520e7bf48bea44d7d7f3716bdcd75813fc9",
+      "snapshot_sha256": "7a5e8ae1f188e86ebed97abb09f9e520e7bf48bea44d7d7f3716bdcd75813fc9",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/colar_oneshot_fair.py",
+      "source_relative": "src/models/colar_oneshot_fair.py",
+      "source_sha256": "18d6b4bb2d9980d3765504ae76b402c603ae133953b9141190a061f579d738e2",
+      "snapshot_sha256": "18d6b4bb2d9980d3765504ae76b402c603ae133953b9141190a061f579d738e2",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/cot.py",
+      "source_relative": "src/models/cot.py",
+      "source_sha256": "045e56683048390dc98693e0ab4b4a04382ae3fa7c02f899b62b10b2301c1860",
+      "snapshot_sha256": "045e56683048390dc98693e0ab4b4a04382ae3fa7c02f899b62b10b2301c1860",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/distill.py",
+      "source_relative": "src/models/distill.py",
+      "source_sha256": "dffbc0916eba9a57dcccc89eafa35a279a1a7b0fb2414ac0643efa951f250546",
+      "snapshot_sha256": "dffbc0916eba9a57dcccc89eafa35a279a1a7b0fb2414ac0643efa951f250546",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/icot.py",
+      "source_relative": "src/models/icot.py",
+      "source_sha256": "9e9c9858a856f6ad12b5e82edef38f21e0f874e3beeff18017acd09fbe90c31d",
+      "snapshot_sha256": "9e9c9858a856f6ad12b5e82edef38f21e0f874e3beeff18017acd09fbe90c31d",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/model_base.py",
+      "source_relative": "src/models/model_base.py",
+      "source_sha256": "ce69291e57a49dc8a57833e6273b00887105b7caef17d12eadf91bd0e5fb1d1c",
+      "snapshot_sha256": "ce69291e57a49dc8a57833e6273b00887105b7caef17d12eadf91bd0e5fb1d1c",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/read.py",
+      "source_relative": "src/models/read.py",
+      "source_sha256": "a55bb4f1699f0e542ba69b860685623f171cc4a7d3582ebaf36911ead05d4d0d",
+      "snapshot_sha256": "a55bb4f1699f0e542ba69b860685623f171cc4a7d3582ebaf36911ead05d4d0d",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/read_efficient.py",
+      "source_relative": "src/models/read_efficient.py",
+      "source_sha256": "741ff3d131df6090c62ad3849864eb4c19e2d3582b77e49eabf6de48b6637745",
+      "snapshot_sha256": "741ff3d131df6090c62ad3849864eb4c19e2d3582b77e49eabf6de48b6637745",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/read_stable_efficient.py",
+      "source_relative": "src/models/read_stable_efficient.py",
+      "source_sha256": "e1279ae8a2321018510c03fd6e05ad1b14234929f7d280e5b42e5471bad541e3",
+      "snapshot_sha256": "e1279ae8a2321018510c03fd6e05ad1b14234929f7d280e5b42e5471bad541e3",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/trace_bridge.py",
+      "source_relative": "src/models/trace_bridge.py",
+      "source_sha256": "36529f2e7cbb1d920b6d0b9f0991aa40bbc6660b5c3fc716414b247e97ccecb6",
+      "snapshot_sha256": "36529f2e7cbb1d920b6d0b9f0991aa40bbc6660b5c3fc716414b247e97ccecb6",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/trace_colar.py",
+      "source_relative": "src/models/trace_colar.py",
+      "source_sha256": "3e045f93f52d26fbb14cff702059507df2e5d5ee31bc150edf076fcd4d45d1bc",
+      "snapshot_sha256": "3e045f93f52d26fbb14cff702059507df2e5d5ee31bc150edf076fcd4d45d1bc",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/trace_multipath.py",
+      "source_relative": "src/models/trace_multipath.py",
+      "source_sha256": "3a96900054865063db18787283d76485b34ec51587db5b7a08e71a32deb1129e",
+      "snapshot_sha256": "3a96900054865063db18787283d76485b34ec51587db5b7a08e71a32deb1129e",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/trace_role_native.py",
+      "source_relative": "src/models/trace_role_native.py",
+      "source_sha256": "0a960f1ed27a14b98fbe9b8258042abefdbddd1f341e26ea1b4397a0516f837d",
+      "snapshot_sha256": "0a960f1ed27a14b98fbe9b8258042abefdbddd1f341e26ea1b4397a0516f837d",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/models/trace_trajectory.py",
+      "source_relative": "src/models/trace_trajectory.py",
+      "source_sha256": "a52cccbf6c812cc0ca2254e9f8eb32a85eebe3086dd708bb5c059aee524689bb",
+      "snapshot_sha256": "a52cccbf6c812cc0ca2254e9f8eb32a85eebe3086dd708bb5c059aee524689bb",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/modules/__init__.py",
+      "source_relative": "src/modules/__init__.py",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snapshot_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/modules/embeddings.py",
+      "source_relative": "src/modules/embeddings.py",
+      "source_sha256": "f720a4ca5989aff7cf7c0028e66394bed2e6007ad0984ee6583ea0c94f33553a",
+      "snapshot_sha256": "f720a4ca5989aff7cf7c0028e66394bed2e6007ad0984ee6583ea0c94f33553a",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/modules/grpo.py",
+      "source_relative": "src/modules/grpo.py",
+      "source_sha256": "0ab36af4fdb30e2fba01108ed0e2fc5f278632b222bded0027bda7d99b002817",
+      "snapshot_sha256": "0ab36af4fdb30e2fba01108ed0e2fc5f278632b222bded0027bda7d99b002817",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/modules/projector.py",
+      "source_relative": "src/modules/projector.py",
+      "source_sha256": "92e42992833494b609465007eeb4f5e391613bab83d66085ec311abe23704107",
+      "snapshot_sha256": "92e42992833494b609465007eeb4f5e391613bab83d66085ec311abe23704107",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/modules/readcot.py",
+      "source_relative": "src/modules/readcot.py",
+      "source_sha256": "4cad18ab2ceda07d81d36613f228ec363a4d04943d67c61178d45dc25e08889e",
+      "snapshot_sha256": "4cad18ab2ceda07d81d36613f228ec363a4d04943d67c61178d45dc25e08889e",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/modules/role_native.py",
+      "source_relative": "src/modules/role_native.py",
+      "source_sha256": "39b2d2b7c4327a9ef1d431f2394ae5ccd18c1d788e983464d462d5140b85d7fe",
+      "snapshot_sha256": "39b2d2b7c4327a9ef1d431f2394ae5ccd18c1d788e983464d462d5140b85d7fe",
+      "core_method": true,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/utils/__init__.py",
+      "source_relative": "src/utils/__init__.py",
+      "source_sha256": "6c9fb42c114b4ca31ccaad4b95431032202b25a63c1f3029ea2e832448f5b6b8",
+      "snapshot_sha256": "6c9fb42c114b4ca31ccaad4b95431032202b25a63c1f3029ea2e832448f5b6b8",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/utils/constants.py",
+      "source_relative": "src/utils/constants.py",
+      "source_sha256": "05efdfb22edb41a70597c6f8b80944f8430d5e87f5d71a36e65e95022cec095f",
+      "snapshot_sha256": "05efdfb22edb41a70597c6f8b80944f8430d5e87f5d71a36e65e95022cec095f",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/utils/log.py",
+      "source_relative": "src/utils/log.py",
+      "source_sha256": "5b889831b449e8ba76f68fa7fb83edd0fdee6c68fe81b56552b73205aea9e839",
+      "snapshot_sha256": "5b889831b449e8ba76f68fa7fb83edd0fdee6c68fe81b56552b73205aea9e839",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/src/utils/utils.py",
+      "source_relative": "src/utils/utils.py",
+      "source_sha256": "1d907d8b4cfb4385778a83d9a9febd704c2e8be35496394ac3635242a5cf8e93",
+      "snapshot_sha256": "1d907d8b4cfb4385778a83d9a9febd704c2e8be35496394ac3635242a5cf8e93",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tests/mock_nvidia_smi_lease.sh",
+      "source_relative": "tests/mock_nvidia_smi_lease.sh",
+      "source_sha256": "71db88efe2f2ee3cf1d7147c2f105a9f67fa8ef6b707303220c81a0efc45da6b",
+      "snapshot_sha256": "71db88efe2f2ee3cf1d7147c2f105a9f67fa8ef6b707303220c81a0efc45da6b",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tests/test_lineage_guard.py",
+      "source_relative": "tests/test_lineage_guard.py",
+      "source_sha256": "3308884d5c304e8aba8f7884ce459da32cb653fd16736ec82d7aa9135dc9c277",
+      "snapshot_sha256": "3308884d5c304e8aba8f7884ce459da32cb653fd16736ec82d7aa9135dc9c277",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tests/test_protect_gpu_lease.sh",
+      "source_relative": "tests/test_protect_gpu_lease.sh",
+      "source_sha256": "37e4920607587248d19bf2e1b90e1452de4a24dc15803eb8cbbb8274abd3ec5f",
+      "snapshot_sha256": "37e4920607587248d19bf2e1b90e1452de4a24dc15803eb8cbbb8274abd3ec5f",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tests/test_protect_gpu_lease_baseline.sh",
+      "source_relative": "tests/test_protect_gpu_lease_baseline.sh",
+      "source_sha256": "720ad505f60f95156522fe02a5a00bd5be9cee49bca66a4738668b5c6849a7e0",
+      "snapshot_sha256": "720ad505f60f95156522fe02a5a00bd5be9cee49bca66a4738668b5c6849a7e0",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tests/test_protect_gpu_lease_descendant.sh",
+      "source_relative": "tests/test_protect_gpu_lease_descendant.sh",
+      "source_sha256": "e896dd61fb8ef49192b203db7b48c34c57f055c33b799b9de10d56f1d3c5b280",
+      "snapshot_sha256": "e896dd61fb8ef49192b203db7b48c34c57f055c33b799b9de10d56f1d3c5b280",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tests/test_role_native.py",
+      "source_relative": "tests/test_role_native.py",
+      "source_sha256": "0457eb895903ae66eb3bced87bd01573319f3ac1bcbf89c6e7d30038c00207b4",
+      "snapshot_sha256": "0457eb895903ae66eb3bced87bd01573319f3ac1bcbf89c6e7d30038c00207b4",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tests/test_strict_validation.py",
+      "source_relative": "tests/test_strict_validation.py",
+      "source_sha256": "81ae7f94ab2e9ea63a438dd8759f930ac2cc813e6887c84f0c5eb750cd2c2198",
+      "snapshot_sha256": "81ae7f94ab2e9ea63a438dd8759f930ac2cc813e6887c84f0c5eb750cd2c2198",
+      "core_method": false,
+      "packaging_modified": false
+    },
+    {
+      "path": "main/native_v9/tools/run_native_v9_strict_validation.py",
+      "source_relative": "tools/run_native_v9_strict_validation.py",
+      "source_sha256": "712aec04d5e4547cb14415c9981310827dc1bb3698e8f1154a4ef7abe8872774",
+      "snapshot_sha256": "712aec04d5e4547cb14415c9981310827dc1bb3698e8f1154a4ef7abe8872774",
+      "core_method": false,
+      "packaging_modified": false
+    }
+  ],
+  "trees": [
+    {
+      "path": "archive/trace_policy_pre_v9",
+      "source_root": "/disk1/dingxukai/TRACE",
+      "files": 81,
+      "bytes": 810774,
+      "source_tree_sha256": "25972aebfcc34400f3e7fd6e95d071124f59dec5d2b65292ae35393c95f8db10",
+      "snapshot_tree_sha256": "25972aebfcc34400f3e7fd6e95d071124f59dec5d2b65292ae35393c95f8db10"
+    },
+    {
+      "path": "ablations/legacy_trace_colar",
+      "source_root": "/disk1/dingxukai/trace_colar",
+      "files": 284,
+      "bytes": 2705687,
+      "source_tree_sha256": "4b47ff7197bae053ce1540f7d99837888c265ab9dd9c2432aee063c41edc7a42",
+      "snapshot_tree_sha256": "4b47ff7197bae053ce1540f7d99837888c265ab9dd9c2432aee063c41edc7a42"
+    },
+    {
+      "path": "ablations/requested_suite_20260705",
+      "source_root": "/home/dingxukai/trace_requested_experiments_20260705",
+      "files": 2,
+      "bytes": 19856,
+      "source_tree_sha256": "50c10859ccb73bb57a354df23e0396b118f6719f9efa8c7daa3d0003ad2de806",
+      "snapshot_tree_sha256": "50c10859ccb73bb57a354df23e0396b118f6719f9efa8c7daa3d0003ad2de806"
+    },
+    {
+      "path": "archive/trace_role_latent_rl_v1",
+      "source_root": "/home/dingxukai/TRACE/trace_role_latent_rl_v1",
+      "files": 81,
+      "bytes": 861516,
+      "source_tree_sha256": "194387e090b23c9eadae126810feb73bb09b49752a500cfcf91f3490d2e7909c",
+      "snapshot_tree_sha256": "194387e090b23c9eadae126810feb73bb09b49752a500cfcf91f3490d2e7909c"
+    },
+    {
+      "path": "archive/trace_vb_latent_rl_v1",
+      "source_root": "/home/dingxukai/TRACE/trace_vb_latent_rl_v1",
+      "files": 103,
+      "bytes": 1327986,
+      "source_tree_sha256": "fac39fc87165749618d53d0234bd238167c218aac1d00b4e94a35672c4381277",
+      "snapshot_tree_sha256": "fac39fc87165749618d53d0234bd238167c218aac1d00b4e94a35672c4381277"
+    },
+    {
+      "path": "archive/trace_vb_latent_rl_v2",
+      "source_root": "/home/dingxukai/TRACE/trace_vb_latent_rl_v2",
+      "files": 108,
+      "bytes": 1458634,
+      "source_tree_sha256": "302454046a1ad14cf967693535925de248e62da7c660fad717df2fb1a6d019ef",
+      "snapshot_tree_sha256": "302454046a1ad14cf967693535925de248e62da7c660fad717df2fb1a6d019ef"
+    },
+    {
+      "path": "archive/trace_vb_latent_rl_v4",
+      "source_root": "/home/dingxukai/TRACE/trace_vb_latent_rl_v4",
+      "files": 111,
+      "bytes": 1523076,
+      "source_tree_sha256": "4b22ddf3cbc497dca23f78f8a4730b8a08a5f71ea350ba96dad56252c839a7d4",
+      "snapshot_tree_sha256": "4b22ddf3cbc497dca23f78f8a4730b8a08a5f71ea350ba96dad56252c839a7d4"
+    },
+    {
+      "path": "archive/trace_vb_latent_rl_v5",
+      "source_root": "/home/dingxukai/TRACE/trace_vb_latent_rl_v5",
+      "files": 111,
+      "bytes": 1540701,
+      "source_tree_sha256": "5c971cc1ae0ad2e94a3773a27390bfff11ce702ef587a2e08ac4d56d29d79d65",
+      "snapshot_tree_sha256": "5c971cc1ae0ad2e94a3773a27390bfff11ce702ef587a2e08ac4d56d29d79d65"
+    },
+    {
+      "path": "archive/trace_vb_latent_rl_v6",
+      "source_root": "/home/dingxukai/TRACE/trace_vb_latent_rl_v6",
+      "files": 112,
+      "bytes": 1565077,
+      "source_tree_sha256": "06441d7f86a47a77a94274f5f7dc2adfad74034c52c6f7ec3ca49e5df82b45f7",
+      "snapshot_tree_sha256": "06441d7f86a47a77a94274f5f7dc2adfad74034c52c6f7ec3ca49e5df82b45f7"
+    },
+    {
+      "path": "archive/trace_vb_latent_rl_v7",
+      "source_root": "/home/dingxukai/TRACE/trace_vb_latent_rl_v7",
+      "files": 116,
+      "bytes": 1687644,
+      "source_tree_sha256": "965f84a77c084aee2e2205c3075b837109f46dc3173c97b79879035abd7d65f1",
+      "snapshot_tree_sha256": "965f84a77c084aee2e2205c3075b837109f46dc3173c97b79879035abd7d65f1"
+    },
+    {
+      "path": "archive/trace_vb_latent_rl_v8",
+      "source_root": "/home/dingxukai/TRACE/trace_vb_latent_rl_v8",
+      "files": 132,
+      "bytes": 2168697,
+      "source_tree_sha256": "321a44ae60c05c8cb2fd4e3f2382f43f27ce8bcb665d66e91fdbb19547101e3b",
+      "snapshot_tree_sha256": "321a44ae60c05c8cb2fd4e3f2382f43f27ce8bcb665d66e91fdbb19547101e3b"
+    }
+  ]
+}

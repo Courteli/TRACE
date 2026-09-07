@@ -1,0 +1,174 @@
+seed: ~
+
+model:
+  target: src.models.trace_final.LitTRACEFinal
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: trace-final
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: sdpa
+    do_trace_rl: False
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    readcot_config:
+      n_latents: 8
+      answer_loss_weight: 1.0
+      lambda_dep: 0.04
+      lambda_res: 0.0
+      lambda_anchor: 0.0
+      lambda_anchor_gate: 0.0
+
+      dependency_threshold: 0.5
+      center_relation_probs: True
+      negative_edge_confidence: 0.25
+      dep_pos_weight_max: 4.0
+      dep_loss_clamp: 1.5
+
+      detach_explicit_teacher: True
+      explicit_feature_mode: packed
+      implicit_latent_mode: block
+      block_latent_query_scale: 0.1
+
+      answer_warmup_steps: 300
+      answer_decay_start_step: ~
+      answer_decay_end_step: ~
+      answer_min_scale: 1.0
+      dep_warmup_steps: 300
+      dep_decay_start_step: 9000
+      dep_decay_end_step: 18000
+      dep_min_scale: 0.2
+
+      use_hybrid: False
+      use_anchor_loss: False
+      use_anchor_gate: False
+      hybrid_seed_anchor_header: False
+
+      relation_hidden_size: 1024
+      bridge_hidden_size: 1024
+      residual_proj_size: 1024
+      normalize_residual_mse: True
+      residual_loss_type: smooth_l1
+      residual_cosine_weight: 0.1
+      dropout: 0.0
+
+    trace_bridge_config:
+      enable_trajectory_formation: True
+      use_trace_view_embeddings: False
+      use_trace_step_view_embeddings: False
+      max_trace_views: 1
+
+      path_seed_dim: 16
+      path_seed_basis_seed: 1729
+      path_seed_latent_scale: 0.012
+
+      stage1_formation_weight: 0.14
+      stage1_relation_mix: 0.25
+      path_anchor_count: 3
+      path_position_mix: 0.45
+      path_direction_mix: 0.35
+      path_step_mix: 0.15
+      path_noncollapse_mix: 0.05
+      path_noncollapse_margin: 0.02
+
+      stage1_progress_anchor_mix: 0.45
+      stage1_progress_anchor_sigma: 0.18
+      stage1_latent_query_noise_std: 0.0
+
+      save_trace_visual_info: True
+      trace_visual_record_limit: 256
+      trace_visual_group_views: 1
+      trace_visual_seed: 271828
+      trace_visual_do_sample: True
+      trace_visual_temperature: 0.95
+      trace_visual_top_p: 0.97
+      trace_eval_hidden_prefix_k: -1
+      trace_eval_hidden_drop_index: -1
+      trace_eval_intervention: none
+      trace_eval_intervention_seed: 271828
+      trace_eval_skip_structure_metrics: False
+
+    trace_rl_config:
+      group_size: 8
+      exp_batch_size: 1
+      n_train_samples_per_epoch: 2048
+      clip_eps: 0.12
+      use_latent_loss: False
+      use_answer_loss: True
+      average_per_token_loss: True
+      clip_grad_norm: 1.0
+      temperature: 0.95
+      top_p: 0.97
+
+      output_length_penalty_weight: 0.03
+      target_output_length: 33.5
+
+      stage2_sft_replay_weight: 0.05
+      stage2_local_ranking_weight: 0.10
+      stage2_local_ranking_margin: 0.08
+      stage2_ranking_micro_batch_size: 1
+      stage2_accuracy_gradient_guard: True
+      stage2_ranking_grad_ratio: 0.25
+
+    answer_generation_config:
+      max_new_tokens: 96
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1.0e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: True
+    scheduler:
+      target: cosine_schedule_with_warmup
+      warmup_steps: 600
+      num_training_steps: 67260
+
+trainer:
+  max_epochs: 10
+  max_steps: -1
+  val_check_interval: 1.0
+  check_val_every_n_epoch: 1
+  gradient_clip_val: 0.3
+
+callbacks:
+  - target: lightning.pytorch.callbacks.ModelCheckpoint
+    save_last: True
+    save_top_k: 1
+    mode: max
+    monitor: monitor
+    auto_insert_metric_name: False
+    filename: "epoch{epoch}__step{step}__monitor{monitor:.6f}"
+    save_weights_only: False
+  - target: lightning.pytorch.callbacks.EarlyStopping
+    monitor: monitor
+    mode: max
+    patience: 4
+    min_delta: 0.0
+    check_finite: True
+    verbose: True
+  - target: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False

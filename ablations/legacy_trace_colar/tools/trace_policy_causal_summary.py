@@ -1,0 +1,793 @@
+#!/usr/bin/env python3
+"""Run paired causal interventions on a trained final TRACE checkpoint.
+
+Figure contract
+---------------
+Core conclusion:
+    Answer behavior should depend on the ordered complete latent path, and
+    replacing an influential transition should reduce gold-answer support
+    after causally recomputing the suffix.
+Evidence logic:
+    All interventions are paired within the same 200 questions. Reverse,
+    shuffle, and random controls preserve latent count. Random action controls
+    preserve action norm. Per-transition interventions keep the original
+    prefix, replace one action, and regenerate the suffix.
+Review risks:
+    A strict path bottleneck establishes architectural mediation, while these
+    interventions test behavioral dependence. Neither proves that a decoded
+    latent state has a unique human-readable semantic interpretation.
+"""
+
+import argparse
+import csv
+import json
+import sys
+from pathlib import Path
+from typing import Dict, Sequence, Tuple
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from omegaconf import OmegaConf
+
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.utils.utils import instantiate_from_config
+
+
+PINK = "#E5A3BF"
+PINK_DARK = "#B95C88"
+BLUE = "#6687B8"
+GREEN = "#69AD7C"
+ORANGE = "#E5A11A"
+INK = "#30343B"
+GRID = "#DDE2E8"
+
+
+def apply_style():
+    mpl.rcParams.update(
+        {
+            "font.family": "serif",
+            "font.serif": [
+                "Times New Roman",
+                "Liberation Serif",
+                "Nimbus Roman",
+                "DejaVu Serif",
+            ],
+            "font.size": 7,
+            "axes.titlesize": 8,
+            "axes.labelsize": 7,
+            "xtick.labelsize": 6.5,
+            "ytick.labelsize": 6.5,
+            "axes.linewidth": 0.8,
+            "axes.spines.right": False,
+            "axes.spines.top": False,
+            "legend.frameon": False,
+            "legend.fontsize": 6.5,
+            "svg.fonttype": "none",
+            "pdf.fonttype": 42,
+            "mathtext.fontset": "stix",
+        }
+    )
+
+
+def save_figure(fig, output_base: Path):
+    fig.savefig(output_base.with_suffix(".svg"), bbox_inches="tight")
+    fig.savefig(output_base.with_suffix(".pdf"), bbox_inches="tight")
+    fig.savefig(
+        output_base.with_suffix(".tiff"),
+        dpi=600,
+        bbox_inches="tight",
+    )
+    plt.close(fig)
+
+
+def load_model(checkpoint_path: Path, device: torch.device):
+    hparams_path = checkpoint_path.parent.parent / "hparams.yaml"
+    if not hparams_path.exists():
+        raise FileNotFoundError(f"missing checkpoint hparams: {hparams_path}")
+    saved = OmegaConf.load(hparams_path)
+    config = saved.all_config
+    target = str(config.model.target)
+    if target != "src.models.trace_policy.LitTRACEPolicy":
+        raise ValueError(f"unexpected checkpoint model: {target}")
+    if not bool(config.model.model_kwargs.do_trace_rl):
+        raise ValueError("causal audit requires a final Stage-2 checkpoint")
+    if int(config.model.model_kwargs.readcot_config.n_latents) != 8:
+        raise ValueError("formal causal audit requires exactly eight latents")
+    config.model.model_kwargs.trace_policy_config.visual_record_limit = 0
+    model = instantiate_from_config(
+        config.model,
+        extra_kwargs={"all_config": config},
+    )
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location="cpu",
+        weights_only=False,
+    )
+    load_result = model.load_state_dict(
+        checkpoint["state_dict"],
+        strict=False,
+    )
+    unexpected = [
+        key
+        for key in load_result.unexpected_keys
+        if not key.startswith("stage1_policy_reference.")
+    ]
+    if unexpected:
+        raise ValueError(f"unexpected checkpoint keys: {unexpected[:8]}")
+    model.to(device)
+    model.eval()
+    return model
+
+
+def load_records(path: Path, count: int):
+    records = torch.load(path, map_location="cpu", weights_only=False)
+    if not isinstance(records, list) or len(records) < int(count):
+        raise ValueError(f"{path} must contain at least {count} records")
+    records = records[: int(count)]
+    required = (
+        "idx",
+        "question",
+        "answer",
+        "map_correct",
+        "rollout_schema",
+        "visualization_contract",
+    )
+    for row, record in enumerate(records):
+        missing = [key for key in required if key not in record]
+        if missing:
+            raise ValueError(f"record {row} is missing {missing}")
+        if record["rollout_schema"] != "iid_conditional_gaussian":
+            raise ValueError(f"record {row} is not an IID policy record")
+        contract = record["visualization_contract"]
+        if contract.get("manual_offsets") is not False:
+            raise ValueError(f"record {row} permits manual path offsets")
+        if contract.get("per_path_rescaling") is not False:
+            raise ValueError(f"record {row} permits per-path rescaling")
+    return records
+
+
+def decode_accuracy(model, output_ids, answer: str) -> Tuple[float, int]:
+    text = model.tokenizer.batch_decode(
+        output_ids,
+        skip_special_tokens=True,
+    )[0]
+    prediction = model.extract_answer_from_output(text)
+    accuracy = float(
+        model.verify_answer(
+            gt_answer=answer,
+            pred_answer=prediction,
+        )
+    )
+    length = int(
+        output_ids[0]
+        .ne(model.tokenizer.pad_token_id)
+        .sum()
+        .item()
+    )
+    return accuracy, length
+
+
+def evaluate_path(
+    model,
+    trajectory: Dict[str, torch.Tensor],
+    answer: str,
+    *,
+    latent_read_mask: torch.Tensor = None,
+) -> Dict[str, float]:
+    output_ids = model._generate_answers_from_trajectory(
+        trajectory,
+        do_sample=False,
+        latent_read_mask=latent_read_mask,
+    )
+    accuracy, length = decode_accuracy(model, output_ids, answer)
+    score = float(
+        model._gold_answer_scores(
+            trajectory,
+            [answer],
+            latent_read_mask=latent_read_mask,
+        )[0].item()
+    )
+    return {
+        "accuracy": accuracy,
+        "length": float(length),
+        "gold_score": score,
+    }
+
+
+def same_norm_random_actions(
+    actions: torch.Tensor,
+    *,
+    seed: int,
+) -> torch.Tensor:
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(int(seed))
+    direction = torch.randn(
+        actions.shape,
+        generator=generator,
+        dtype=torch.float32,
+    ).to(actions.device)
+    direction = direction / direction.norm(
+        dim=-1,
+        keepdim=True,
+    ).clamp_min(1e-8)
+    return direction.to(actions.dtype) * actions.norm(
+        dim=-1,
+        keepdim=True,
+    )
+
+
+def forced_trajectory(
+    model,
+    question: str,
+    actions: torch.Tensor,
+    *,
+    prefix_length: int,
+) -> Dict[str, torch.Tensor]:
+    n_steps = actions.shape[1]
+    mask = torch.zeros(
+        1,
+        n_steps,
+        device=actions.device,
+        dtype=torch.bool,
+    )
+    mask[:, : int(prefix_length)] = True
+    innovations = torch.zeros_like(actions)
+    return model._trajectory_latents(
+        [question],
+        innovations=innovations,
+        forced_actions=actions,
+        forced_action_mask=mask,
+    )
+
+
+def paired_drop(
+    baseline: Sequence[float],
+    intervention: Sequence[float],
+    *,
+    rng: np.random.Generator,
+    bootstrap: int,
+) -> Dict[str, object]:
+    base = np.asarray(baseline, dtype=np.float64)
+    changed = np.asarray(intervention, dtype=np.float64)
+    if base.shape != changed.shape:
+        raise ValueError("paired intervention vectors have different shapes")
+    drop = base - changed
+    indices = rng.integers(
+        0,
+        len(drop),
+        size=(int(bootstrap), len(drop)),
+    )
+    sampled = drop[indices].mean(axis=1)
+    return {
+        "baseline": float(base.mean()),
+        "intervention": float(changed.mean()),
+        "drop": float(drop.mean()),
+        "drop_ci95": [
+            float(np.quantile(sampled, 0.025)),
+            float(np.quantile(sampled, 0.975)),
+        ],
+        "positive_fraction": float((drop > 0).mean()),
+        "n_questions": int(len(drop)),
+    }
+
+
+def matrix_mean_ci(
+    values: np.ndarray,
+    *,
+    rng: np.random.Generator,
+    bootstrap: int,
+) -> Dict[str, object]:
+    indices = rng.integers(
+        0,
+        values.shape[0],
+        size=(int(bootstrap), values.shape[0]),
+    )
+    means = values[indices].mean(axis=1)
+    return {
+        "mean": values.mean(axis=0).tolist(),
+        "ci95_low": np.quantile(means, 0.025, axis=0).tolist(),
+        "ci95_high": np.quantile(means, 0.975, axis=0).tolist(),
+        "n_questions": int(values.shape[0]),
+    }
+
+
+def plot_accuracy(report: dict, output_base: Path):
+    names = (
+        "baseline",
+        "no_path",
+        "reverse",
+        "shuffle",
+        "mean_repeat",
+        "random",
+    )
+    labels = (
+        "Full path",
+        "No path",
+        "Reverse",
+        "Shuffle",
+        "Mean repeat",
+        "Random",
+    )
+    values = [report["accuracy"][name]["intervention"] for name in names]
+    values[0] = report["accuracy"]["baseline"]["baseline"]
+    colors = [BLUE, ORANGE, GREEN, PINK, BLUE, PINK_DARK]
+    fig, ax = plt.subplots(figsize=(4.25, 2.45))
+    bars = ax.bar(
+        np.arange(len(names)),
+        np.asarray(values) * 100.0,
+        color=colors,
+        edgecolor=INK,
+        linewidth=0.45,
+        width=0.68,
+    )
+    for bar, value in zip(bars, values):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height(),
+            f"{value * 100.0:.1f}",
+            ha="center",
+            va="bottom",
+            fontsize=6.5,
+        )
+    ax.set_xticks(np.arange(len(names)), labels, rotation=18, ha="right")
+    ax.set_ylabel("Accuracy (%)")
+    ax.set_title(
+        "Answers depend on the ordered latent path",
+        loc="left",
+        fontweight="bold",
+    )
+    ax.grid(axis="y", color=GRID, linewidth=0.55)
+    fig.tight_layout(pad=0.6)
+    save_figure(fig, output_base)
+
+
+def plot_prefix(prefix_score: dict, prefix_accuracy: dict, output_base: Path):
+    steps = np.arange(len(prefix_score["mean"]))
+    fig, axes = plt.subplots(1, 2, figsize=(5.25, 2.35))
+    for ax, values, ylabel, scale in (
+        (axes[0], prefix_accuracy, "Accuracy (%)", 100.0),
+        (
+            axes[1],
+            prefix_score,
+            "Gold-answer log probability",
+            1.0,
+        ),
+    ):
+        mean = np.asarray(values["mean"]) * scale
+        low = np.asarray(values["ci95_low"]) * scale
+        high = np.asarray(values["ci95_high"]) * scale
+        ax.plot(
+            steps,
+            mean,
+            color=PINK_DARK,
+            marker="o",
+            markersize=3.8,
+            linewidth=1.7,
+        )
+        ax.fill_between(steps, low, high, color=PINK, alpha=0.24)
+        ax.set_xticks(steps)
+        ax.set_xlabel("Visible latent prefix")
+        ax.set_ylabel(ylabel)
+        ax.grid(color=GRID, linewidth=0.5)
+    axes[0].set_title("Behavioral sufficiency", loc="left", fontweight="bold")
+    axes[1].set_title("Gold-answer support", loc="left", fontweight="bold")
+    fig.tight_layout(pad=0.6, w_pad=1.25)
+    save_figure(fig, output_base)
+
+
+def plot_transition(
+    transition_score: dict,
+    transition_accuracy: dict,
+    output_base: Path,
+):
+    steps = np.arange(1, len(transition_score["mean"]) + 1)
+    fig, axes = plt.subplots(1, 2, figsize=(5.25, 2.35))
+    for ax, values, ylabel, scale in (
+        (axes[0], transition_accuracy, "Accuracy drop (pp)", 100.0),
+        (axes[1], transition_score, "Gold-score drop", 1.0),
+    ):
+        mean = np.asarray(values["mean"]) * scale
+        low = np.asarray(values["ci95_low"]) * scale
+        high = np.asarray(values["ci95_high"]) * scale
+        errors = np.stack([mean - low, high - mean])
+        ax.axhline(0.0, color=INK, linestyle="--", linewidth=0.9)
+        ax.bar(
+            steps,
+            mean,
+            color=PINK,
+            edgecolor=PINK_DARK,
+            linewidth=0.65,
+            width=0.68,
+        )
+        ax.errorbar(
+            steps,
+            mean,
+            yerr=errors,
+            fmt="none",
+            color=INK,
+            linewidth=0.8,
+            capsize=2.2,
+        )
+        ax.set_xticks(steps)
+        ax.set_xlabel("Replaced transition")
+        ax.set_ylabel(ylabel)
+        ax.grid(axis="y", color=GRID, linewidth=0.5)
+    axes[0].set_title("Answer behavior", loc="left", fontweight="bold")
+    axes[1].set_title("Gold-answer support", loc="left", fontweight="bold")
+    fig.tight_layout(pad=0.6, w_pad=1.25)
+    save_figure(fig, output_base)
+
+
+def figure_qa(output_dir: Path):
+    from PIL import Image, ImageStat
+
+    figures = []
+    for svg in sorted(output_dir.glob("*.svg")):
+        pdf = svg.with_suffix(".pdf")
+        tiff = svg.with_suffix(".tiff")
+        if "<text" not in svg.read_text():
+            raise ValueError(f"{svg} does not preserve editable text")
+        if not pdf.exists() or not tiff.exists():
+            raise ValueError(f"incomplete export bundle for {svg.stem}")
+        image = Image.open(tiff).convert("RGB")
+        extrema = ImageStat.Stat(image).extrema
+        if all(low == high for low, high in extrema):
+            raise ValueError(f"{tiff} is visually blank")
+        figures.append(
+            {
+                "name": svg.stem,
+                "tiff_pixels": list(image.size),
+                "svg_editable_text": True,
+                "nonblank": True,
+            }
+        )
+    if len(figures) != 3:
+        raise ValueError(f"expected three causal figures, found {len(figures)}")
+    return {"status": "PASS", "figures": figures}
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument("--records", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--count", type=int, default=200)
+    parser.add_argument("--bootstrap", type=int, default=2000)
+    args = parser.parse_args()
+    if int(args.count) != 200:
+        raise ValueError("formal causal evidence requires exactly 200 questions")
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    apply_style()
+    device = torch.device(args.device)
+    if device.type == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA is unavailable for the formal causal audit")
+    records = load_records(args.records, args.count)
+    model = load_model(args.checkpoint, device)
+    if model.n_trace_steps != 8:
+        raise ValueError("loaded model does not use eight transitions")
+
+    shuffle_order = torch.tensor(
+        [2, 0, 5, 1, 7, 3, 6, 4],
+        device=device,
+        dtype=torch.long,
+    )
+    rows = []
+    torch.set_grad_enabled(False)
+    for row_index, record in enumerate(records):
+        question = str(record["question"])
+        answer = str(record["answer"])
+        trajectory = model._trajectory_latents(
+            [question],
+            deterministic=True,
+        )
+        baseline = evaluate_path(model, trajectory, answer)
+        if baseline["accuracy"] != float(record["map_correct"]):
+            raise RuntimeError(
+                f"MAP replay mismatch at question {record['idx']}"
+            )
+        latent_mask = trajectory["latent_attention_mask"]
+        no_path = evaluate_path(
+            model,
+            trajectory,
+            answer,
+            latent_read_mask=torch.zeros_like(latent_mask),
+        )
+        prefix_results = [no_path]
+        for prefix in range(1, model.n_trace_steps):
+            prefix_mask = torch.zeros_like(latent_mask)
+            prefix_mask[:, :prefix] = 1
+            prefix_results.append(
+                evaluate_path(
+                    model,
+                    trajectory,
+                    answer,
+                    latent_read_mask=prefix_mask,
+                )
+            )
+        prefix_results.append(baseline)
+
+        actions = trajectory["actions"].detach()
+        random_actions = same_norm_random_actions(
+            actions,
+            seed=20260719 + int(record["idx"]),
+        )
+        intervention_actions = {
+            "reverse": actions.flip(dims=[1]),
+            "shuffle": actions.index_select(1, shuffle_order),
+            "mean_repeat": actions.mean(dim=1, keepdim=True).expand_as(
+                actions
+            ),
+            "random": random_actions,
+        }
+        interventions = {}
+        for name, changed_actions in intervention_actions.items():
+            changed = forced_trajectory(
+                model,
+                question,
+                changed_actions,
+                prefix_length=model.n_trace_steps,
+            )
+            interventions[name] = evaluate_path(model, changed, answer)
+            del changed
+
+        transition_score_drops = []
+        transition_accuracy_drops = []
+        for step in range(model.n_trace_steps):
+            changed_actions = actions.clone()
+            changed_actions[:, step] = random_actions[:, step]
+            changed = forced_trajectory(
+                model,
+                question,
+                changed_actions,
+                prefix_length=step + 1,
+            )
+            changed_result = evaluate_path(model, changed, answer)
+            transition_score_drops.append(
+                baseline["gold_score"] - changed_result["gold_score"]
+            )
+            transition_accuracy_drops.append(
+                baseline["accuracy"] - changed_result["accuracy"]
+            )
+            del changed
+
+        output = {
+            "idx": int(record["idx"]),
+            "baseline_accuracy": baseline["accuracy"],
+            "baseline_length": baseline["length"],
+            "baseline_gold_score": baseline["gold_score"],
+            "no_path_accuracy": no_path["accuracy"],
+            "no_path_length": no_path["length"],
+            "no_path_gold_score": no_path["gold_score"],
+        }
+        for name, values in interventions.items():
+            for metric, value in values.items():
+                output[f"{name}_{metric}"] = value
+        for prefix, values in enumerate(prefix_results):
+            output[f"prefix_{prefix}_accuracy"] = values["accuracy"]
+            output[f"prefix_{prefix}_gold_score"] = values["gold_score"]
+        for step, (score_drop, accuracy_drop) in enumerate(
+            zip(transition_score_drops, transition_accuracy_drops),
+            start=1,
+        ):
+            output[f"transition_{step}_accuracy_drop"] = accuracy_drop
+            output[f"transition_{step}_gold_drop"] = score_drop
+        rows.append(output)
+        del trajectory
+        if device.type == "cuda" and (row_index + 1) % 10 == 0:
+            torch.cuda.empty_cache()
+        if (row_index + 1) % 10 == 0:
+            print(f"causal audit: {row_index + 1}/{len(records)}")
+
+    csv_path = args.output_dir / "question_causal_interventions.csv"
+    with csv_path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    rng = np.random.default_rng(20260719)
+    accuracy = {}
+    gold_score = {}
+    baseline_accuracy = [row["baseline_accuracy"] for row in rows]
+    baseline_score = [row["baseline_gold_score"] for row in rows]
+    accuracy["baseline"] = paired_drop(
+        baseline_accuracy,
+        baseline_accuracy,
+        rng=rng,
+        bootstrap=args.bootstrap,
+    )
+    gold_score["baseline"] = paired_drop(
+        baseline_score,
+        baseline_score,
+        rng=rng,
+        bootstrap=args.bootstrap,
+    )
+    for name in (
+        "no_path",
+        "reverse",
+        "shuffle",
+        "mean_repeat",
+        "random",
+    ):
+        accuracy[name] = paired_drop(
+            baseline_accuracy,
+            [row[f"{name}_accuracy"] for row in rows],
+            rng=rng,
+            bootstrap=args.bootstrap,
+        )
+        gold_score[name] = paired_drop(
+            baseline_score,
+            [row[f"{name}_gold_score"] for row in rows],
+            rng=rng,
+            bootstrap=args.bootstrap,
+        )
+    prefix_score_values = np.asarray(
+        [
+            [row[f"prefix_{prefix}_gold_score"] for prefix in range(9)]
+            for row in rows
+        ]
+    )
+    prefix_accuracy_values = np.asarray(
+        [
+            [row[f"prefix_{prefix}_accuracy"] for prefix in range(9)]
+            for row in rows
+        ]
+    )
+    transition_score_values = np.asarray(
+        [
+            [
+                row[f"transition_{step}_gold_drop"]
+                for step in range(1, 9)
+            ]
+            for row in rows
+        ]
+    )
+    transition_accuracy_values = np.asarray(
+        [
+            [
+                row[f"transition_{step}_accuracy_drop"]
+                for step in range(1, 9)
+            ]
+            for row in rows
+        ]
+    )
+    prefix_score = matrix_mean_ci(
+        prefix_score_values,
+        rng=rng,
+        bootstrap=args.bootstrap,
+    )
+    prefix_accuracy = matrix_mean_ci(
+        prefix_accuracy_values,
+        rng=rng,
+        bootstrap=args.bootstrap,
+    )
+    transition_score = matrix_mean_ci(
+        transition_score_values,
+        rng=rng,
+        bootstrap=args.bootstrap,
+    )
+    transition_accuracy = matrix_mean_ci(
+        transition_accuracy_values,
+        rng=rng,
+        bootstrap=args.bootstrap,
+    )
+    transition_score["positive_fraction"] = (
+        transition_score_values > 0
+    ).mean(axis=0).tolist()
+    strict_transition_gate = [
+        lower > 0.0 for lower in transition_score["ci95_low"]
+    ]
+    prefix_full_vs_zero = {
+        "accuracy": paired_drop(
+            prefix_accuracy_values[:, -1],
+            prefix_accuracy_values[:, 0],
+            rng=rng,
+            bootstrap=args.bootstrap,
+        ),
+        "gold_score": paired_drop(
+            prefix_score_values[:, -1],
+            prefix_score_values[:, 0],
+            rng=rng,
+            bootstrap=args.bootstrap,
+        ),
+    }
+    checks = {
+        "architectural_path_necessity": (
+            accuracy["no_path"]["drop_ci95"][0] > 0.0
+            and gold_score["no_path"]["drop_ci95"][0] > 0.0
+        ),
+        "order_sensitivity": (
+            gold_score["reverse"]["drop_ci95"][0] > 0.0
+            and gold_score["shuffle"]["drop_ci95"][0] > 0.0
+        ),
+        "mean_repeat_collapse_sensitivity": (
+            gold_score["mean_repeat"]["drop_ci95"][0] > 0.0
+        ),
+        "same_norm_direction_sensitivity": (
+            gold_score["random"]["drop_ci95"][0] > 0.0
+        ),
+        "prefix_path_sufficiency": (
+            prefix_full_vs_zero["accuracy"]["drop_ci95"][0] > 0.0
+            and prefix_full_vs_zero["gold_score"]["drop_ci95"][0] > 0.0
+        ),
+        "all_eight_transitions_individually_necessary": all(
+            strict_transition_gate
+        ),
+    }
+    report = {
+        "status": "ANALYSIS_COMPLETE",
+        "checkpoint": str(args.checkpoint),
+        "questions": len(rows),
+        "accuracy": accuracy,
+        "gold_score": gold_score,
+        "prefix_accuracy": prefix_accuracy,
+        "prefix_gold_score": prefix_score,
+        "prefix_full_vs_zero": prefix_full_vs_zero,
+        "transition_accuracy_drop": transition_accuracy,
+        "transition_gold_drop": transition_score,
+        "claim_checks": {
+            name: "PASS" if value else "FAIL"
+            for name, value in checks.items()
+        },
+        "claim_boundary": (
+            "A failed strict transition gate narrows the claim; it is not "
+            "permitted to replace the failed test with a selected 3D view."
+        ),
+    }
+    (args.output_dir / "causal_summary.json").write_text(
+        json.dumps(report, indent=2)
+    )
+    plot_accuracy(report, args.output_dir / "causal_accuracy")
+    plot_prefix(
+        prefix_score,
+        prefix_accuracy,
+        args.output_dir / "prefix_sufficiency",
+    )
+    plot_transition(
+        transition_score,
+        transition_accuracy,
+        args.output_dir / "transition_necessity",
+    )
+    np.savez_compressed(
+        args.output_dir / "causal_source_data.npz",
+        prefix_accuracy=prefix_accuracy_values,
+        prefix_gold_scores=prefix_score_values,
+        transition_accuracy_drops=transition_accuracy_values,
+        transition_gold_drops=transition_score_values,
+        baseline_accuracy=np.asarray(baseline_accuracy),
+        baseline_gold_score=np.asarray(baseline_score),
+    )
+    contract = {
+        "paired_questions": 200,
+        "path_length": 8,
+        "question_attention_access": 0,
+        "controls": [
+            "no path",
+            "reverse actions",
+            "fixed shuffle",
+            "mean-repeat path collapse",
+            "same-norm random actions",
+            "same-norm per-transition replacement with suffix recomputation",
+        ],
+        "uncertainty": "question-bootstrap 95% confidence intervals",
+        "selection": "first 200 test records; no outcome or geometry selection",
+        "exports": ["SVG", "PDF", "TIFF 600 dpi"],
+    }
+    (args.output_dir / "figure_contract.json").write_text(
+        json.dumps(contract, indent=2)
+    )
+    qa = figure_qa(args.output_dir)
+    (args.output_dir / "figure_qa.json").write_text(
+        json.dumps(qa, indent=2)
+    )
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == "__main__":
+    main()

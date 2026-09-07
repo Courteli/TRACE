@@ -1,0 +1,165 @@
+seed: ~
+
+model:
+  target: src.models.trace_policy.LitTRACEPolicy
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: trace-policy
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: sdpa
+    do_trace_rl: False
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    readcot_config:
+      n_latents: 8
+      answer_loss_weight: 1.0
+      lambda_dep: 0.04
+      lambda_res: 0.0
+      lambda_anchor: 0.0
+      lambda_anchor_gate: 0.0
+
+      dependency_threshold: 0.5
+      center_relation_probs: True
+      negative_edge_confidence: 0.25
+      dep_pos_weight_max: 4.0
+      dep_loss_clamp: 1.5
+
+      detach_explicit_teacher: True
+      explicit_feature_mode: packed
+      implicit_latent_mode: autoregressive-policy
+
+      answer_warmup_steps: 300
+      dep_warmup_steps: 300
+      dep_decay_start_step: 9000
+      dep_decay_end_step: 18000
+      dep_min_scale: 0.2
+
+      use_hybrid: False
+      use_anchor_loss: False
+      use_anchor_gate: False
+      hybrid_seed_anchor_header: False
+
+      relation_hidden_size: 1024
+      bridge_hidden_size: 1024
+      residual_proj_size: 1024
+      normalize_residual_mse: True
+      residual_loss_type: smooth_l1
+      residual_cosine_weight: 0.1
+      dropout: 0.0
+
+    trace_policy_config:
+      action_dim: 16
+      policy_hidden_size: 512
+      policy_step_embedding_size: 64
+      initial_log_std: -0.7
+      min_log_std: -2.5
+      max_log_std: 0.5
+      action_embedding_scale: 0.10
+      dynamics_step_scale: 0.10
+
+      stage1_teacher_set_size: 4
+      stage1_max_semantic_modes: 2
+      teacher_progress_noise_scale: 0.55
+      teacher_progress_sigma: 0.20
+      teacher_progress_strength: 1.0
+
+      stage1_formation_weight: 0.14
+      stage1_relation_weight: 0.25
+      stage1_noncollapse_weight: 0.05
+      path_noncollapse_margin: 0.02
+      path_anchor_count: 3
+      path_position_weight: 0.45
+      path_direction_weight: 0.35
+      path_step_weight: 0.15
+
+      visual_record_limit: 0
+
+    trace_rl_config:
+      group_size: 8
+      n_train_samples_per_epoch: 6726
+      rollout_micro_batch_size: 1
+      exp_batch_size: 1
+
+      use_trajectory_policy_loss: True
+      use_answer_policy_loss: True
+      policy_update_epochs: 2
+      trajectory_clip_epsilon: 0.12
+      answer_clip_epsilon: 0.12
+      stage1_policy_kl_weight: 0.02
+      clip_grad_norm: 1.0
+
+      answer_temperature: 0.95
+      answer_top_p: 0.97
+      output_length_penalty_weight: 0.03
+      target_output_length: 33.5
+
+      local_ranking_margin: 0.08
+      max_hard_pairs_per_group: 1
+      local_relation_weight: 0.10
+      local_relation_temperature: 0.08
+      counterfactual_credit_weight: 0.35
+      counterfactual_credit_temperature: 0.10
+
+    answer_generation_config:
+      max_new_tokens: 96
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1.0e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: True
+    scheduler:
+      target: cosine_schedule_with_warmup
+      warmup_steps: 150
+      num_training_steps: 16820
+
+trainer:
+  max_epochs: 10
+  max_steps: -1
+  val_check_interval: 1.0
+  check_val_every_n_epoch: 1
+  gradient_clip_val: 0.3
+
+callbacks:
+  - target: lightning.pytorch.callbacks.ModelCheckpoint
+    save_last: True
+    save_top_k: 1
+    mode: max
+    monitor: monitor
+    auto_insert_metric_name: False
+    filename: "epoch{epoch}__step{step}__monitor{monitor:.6f}"
+    save_weights_only: False
+  - target: lightning.pytorch.callbacks.EarlyStopping
+    monitor: monitor
+    mode: max
+    patience: 4
+    min_delta: 0.0
+    check_finite: True
+    verbose: True
+  - target: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False

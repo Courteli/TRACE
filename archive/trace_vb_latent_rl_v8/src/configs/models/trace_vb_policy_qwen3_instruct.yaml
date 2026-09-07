@@ -1,0 +1,304 @@
+seed: ~
+
+model:
+  target: src.models.trace_vb.LitTRACEVB
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: /home/dingxukai/RoT/ckpt/base/Qwen3-4B-Instruct/qwen3-instruct
+    sft_method: trace-vb-policy
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: sdpa
+    do_trace_rl: False
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    # TRACE-VB-v8 keeps the eight-state physical path fixed. The semantic roles
+    # are PLAN, SOLVE1..5, REFINE (legacy code index CHECK), and deterministic
+    # COMMIT. Hybrid/anchor branches remain disabled. Stage 1 uses one
+    # sample-local CoT teacher path and one question-only deployment path.
+    readcot_config:
+      n_latents: 8
+      answer_loss_weight: 1.0
+      lambda_dep: 0.0
+      lambda_res: 0.0
+      lambda_anchor: 0.0
+      lambda_anchor_gate: 0.0
+      detach_explicit_teacher: True
+      explicit_feature_mode: packed
+      explicit_include_speed_prompt: True
+      implicit_latent_mode: autoregressive-policy
+      use_hybrid: False
+      use_anchor_loss: False
+      use_anchor_gate: False
+      # Role endpoints are rendered as compact equations. Together with the
+      # final-step-first budget fitter this preserves the answer-producing
+      # transition under the unchanged 48-token deployment budget.
+      anchor_text_mode: compact_equation
+      compact_anchor_max_chars: 64
+      relation_hidden_size: 1024
+      bridge_hidden_size: 1024
+      residual_proj_size: 1024
+      normalize_residual_mse: True
+      residual_loss_type: smooth_l1
+      residual_cosine_weight: 0.1
+      dropout: 0.0
+
+    trace_policy_config:
+      # Fail-closed migration of the verified 540/747 trace-guarded model.
+      # Its frozen adapter/block bridge is a training-only teacher; the
+      # student's zero-action recurrence uses the same bridge as a stable
+      # residual anchor, while deployment remains question+COMMIT.
+      use_capability_anchor: true
+      capability_expected_lora_tensors: 504
+      registered_capability_checkpoint_path: /disk1/dingxukai/trace_colar/logs/trace_bridge_qwen3_instruct_vizstrong/qsa-gsm/20260711-032736_236970_20260711_trace_bridge_final_guarded_mb4_gpu0123_stage2_trace_guarded/checkpoints/epoch1__step1024__monitor0.723.ckpt
+      registered_capability_checkpoint_sha256: d27ef63b1d462aa94fbbecc636cec31985a3687e5d2d036de9cfd87b01ec1525
+      registered_capability_payload_tensors: 517
+      registered_capability_payload_sha256: b1e9a973bbf4f2eeaa18b7d49df16c38db50cea87e998008ba18a46cdff9e049
+      # Immutable metric anchors for the one-time v7 -> v8 migration.  The
+      # student path defines the 527/747 non-degradation floor; the capability
+      # path records the independently verified 540/747 teacher provenance.
+      metric_safe_baseline_path: /disk1/dingxukai/TRACE/trace_vb_v7_runs/pipelines/20260818-213000_trace_vb_v7_full_seed0/student_initial_gate.json
+      metric_safe_baseline_sha256: 9b888b36956f70affae153526b716ad26343164b4aa66d6d3d54f70561144aa2
+      metric_safe_baseline_correct_count: 527
+      metric_safe_baseline_questions: 747
+      registered_capability_validation_path: /disk1/dingxukai/TRACE/trace_vb_v7_runs/pipelines/20260818-213000_trace_vb_v7_full_seed0/capability_parity_gate.json
+      registered_capability_validation_sha256: 59123d2bfc020335f54d70862a904e1b70e5ea1ce764483692809ae4e6772116
+      registered_capability_validation_correct_count: 540
+      registered_capability_validation_questions: 747
+      stage0_expected_lora_tensors: 504
+      # V8 performs one explicit capability-to-deployment rewind and then
+      # fails closed unless both mirrors remain exactly equal and immutable.
+      stage1_freeze_capability_spine: true
+      stage1_freeze_path_lora: true
+      stage1_freeze_capability_query_prior: true
+      stage1_require_capability_spine_parity: true
+      capability_bridge_hidden_size: 1024
+      capability_query_scale: 0.10
+      # Exact validation-time components of the registered 540/747 model.
+      capability_trace_view_scale: 0.30
+      capability_trace_step_view_scale: 0.15
+      capability_anchor_gate_scale: 0.50
+      action_dim: 16
+      policy_hidden_size: 512
+      policy_step_embedding_size: 64
+      initial_log_std: -0.7
+      min_log_std: -2.5
+      max_log_std: 0.5
+      action_embedding_scale: 0.10
+      dynamics_step_scale: 0.10
+
+      # Reliable information bridge: the answer decoder reads the raw question
+      # and deterministic COMMIT, but never PLAN/SOLVE/REFINE directly.
+      answer_context_mode: question_and_commit
+      deployment_compact_reasoning: true
+      commit_causal_summary: true
+
+      # The teacher posterior replaces the failed question-only stochastic
+      # path without increasing the two-path activation budget. The mean path
+      # is trained with the exact compact protocol used at validation.
+      stage1_stochastic_paths: 1
+      stage1_posterior_samples: 1
+      posterior_hidden_size: 512
+      posterior_step_embedding_size: 64
+      posterior_min_log_std: -1.5
+      posterior_max_log_std: 0.5
+      stage1_posterior_kl_weight: 0.05
+      stage1_sampled_answer_weight: 0.0
+      stage1_map_compact_weight: 0.25
+      # Computed from the same compact logits: no third path and no extra LLM
+      # forward. It prevents the protected final answer from being diluted by
+      # the compact rationale tokens.
+      stage1_map_answer_suffix_weight: 1.0
+      stage1_capability_kl_weight: 1.0
+      stage1_capability_kl_scope: full_target
+      stage1_capability_temperature: 2.0
+      stage1_capability_kl_chunk_size: 4
+      # Retained as compatibility metadata only; no deployment/path parameter
+      # is admitted to the optimizer.
+      stage1_capability_lora_lr: 0.0
+      stage1_role_lr: 2.0e-6
+      stage1_answer_weight: 1.0
+      compact_target_max_new_tokens: 48
+      compact_target_max_equations: 2
+      # Recompute both answer-channel forwards during backward. This keeps the
+      # exact token-level objectives while avoiding long-target GPU peaks.
+      stage1_answer_activation_checkpoint: true
+      semantic_projection_size: 256
+      stage1_plan_forecast_weight: 0.10
+      # Hidden-space alignment is a small geometric stabilizer. The primary
+      # SOLVE supervision is token-level reconstruction from each residual.
+      stage1_solve_weight: 0.02
+      stage1_solve_text_weight: 0.02
+      solve_text_decoder_hidden_size: 512
+      solve_text_decoder_max_tokens: 96
+      solve_text_decoder_fail_on_truncation: true
+      solve_text_ce_chunk_size: 8
+      stage1_refine_weight: 0.10
+      # The only deployment-visible latent is explicitly aligned to the final
+      # text-CoT teacher state after receiving REFINE through the residual.
+      stage1_commit_weight: 0.20
+      stage1_sufficiency_weight: 0.10
+      stage1_minimum_action_std: 0.15
+      stage1_variance_weight: 0.005
+      stage1_minimum_action_efficacy_ratio: 0.02
+      stage1_action_efficacy_weight: 0.02
+      # VB-v5 keeps activations on GPU. Exact saved-tensor CPU offload was
+      # measured to leak host RSS linearly and is rejected by the model.
+      # Dense solve-text logits use bounded checkpointed GPU token chunks.
+      stage1_posterior_activation_offload: false
+      stage1_posterior_activation_offload_pin_memory: false
+      stage1_posterior_activation_offload_min_bytes: 1048576
+      # Cleanup happens at the next batch start, after Lightning has released
+      # the preceding loss graph. The synchronized guard saves before stopping.
+      stage1_offload_cache_release_interval: 0
+      stage1_recovery_checkpoint_interval: 200
+      # Stage 2 saves optimizer/scheduler/loop state against the persistent
+      # rollout counter, limiting a 256-rollout interval to at most 63 lost
+      # completed rollouts after interruption.
+      stage2_recovery_checkpoint_interval: 64
+      stage1_host_memory_guard_interval: 10
+      stage1_maximum_rank_rss_gib: 20.0
+      stage1_minimum_host_available_gib: 192.0
+      sufficiency_cache_path: /disk1/dingxukai/TRACE/trace_vb_runs/cache/gsm8k_prefix_sufficiency_v1.pt
+      sufficiency_teacher_checkpoint_sha256: 1e58984dcae9dfd6885a2d5a58c8948d2832a7e19ec467273f8f74546bc7aeaa
+      sufficiency_tokenizer_sha256: b8b23250b705d1778c35090c2ba7056811524756334f207b537263647e60f29a
+      sufficiency_prompt_sha256: d899631d75286aec8c79ecc8b6bf82bca9a70e11c721d36ea26da399ce977e4c
+      sufficiency_composite_sha256: f1eb1296b6342e072431e53778e77687aa53016654938695132f328734bdfecb
+      stage0_cot_encoder_checkpoint_path: /home/dingxukai/colar/logs/cot_qwen3_instruct_qsa/qsa-gsm/20260426-192859_438300_qsa_cot_sft_qwen3_instruct_lr3e-5_3epoch_gpu5/checkpoints/epoch0__step6726__monitor0.871.ckpt
+      stage0_cot_encoder_checkpoint_sha256: df90292c2da854852651a9e75b1e8221484c6dc58b8c81a56400897a8dec7f54
+      sufficiency_gain_alpha: 1.0
+      sufficiency_gain_clip: 1.0
+      visual_record_limit: 0
+
+    trace_rl_config:
+      group_size: 8
+      n_train_samples_per_epoch: 2048
+      rollout_micro_batch_size: 1
+      exp_batch_size: 1
+
+      use_trajectory_policy_loss: True
+      use_answer_policy_loss: False
+      use_terminal_exact_reward: True
+      use_evidence_gated_group_rl: True
+      use_gae: False
+      use_head_only_ppo: False
+      policy_update_epochs: 2
+      trajectory_clip_epsilon: 0.12
+      stage1_policy_kl_weight: 0.02
+      stage1_policy_target_kl: 0.01
+
+      # A frozen answer-likelihood score may resolve all-wrong groups only
+      # after it predicts exact mixed-group outcomes during a no-update
+      # calibration prefix.  Otherwise the fallback remains disabled.
+      score_calibration_batches: 64
+      use_gold_likelihood_fallback: True
+      score_proxy_minimum_pairs: 64
+      score_proxy_minimum_auc: 0.60
+      minimum_gold_score_gap: 0.002
+
+      critic_hidden_size: 512
+      critic_role_embedding_size: 64
+      # Retained only so legacy checkpoints instantiate compatible frozen
+      # shapes; the critic is absent from the v7 objective and optimizer.
+      actor_head_lr: 8.0e-7
+      actor_feature_lr: 2.0e-7
+
+      # Training-only mean-path semantic anchor. It is never an environment
+      # reward and is inactive during score-proxy calibration.
+      # Gold CoT semantics enter once, as role-local rewards. A duplicate
+      # differentiable semantic anchor would double-count the same signal.
+      use_semantic_anchor: False
+      semantic_anchor_initial_weight: 0.0
+      semantic_anchor_minimum_weight: 0.0
+      semantic_anchor_decay_batches: 4096
+      semantic_anchor_plan_weight: 0.25
+      semantic_anchor_solve_text_weight: 0.50
+      semantic_anchor_refine_weight: 0.25
+
+      entropy_coefficient: 0.001
+      role_entropy_weights:
+        - 1.0
+        - 0.9
+        - 0.75
+        - 0.6
+        - 0.45
+        - 0.3
+        - 0.15
+        - 0.0
+      clip_grad_norm: 1.0
+
+      # Exact correctness remains the terminal objective. The only dense term
+      # is auditable cosine agreement with the sample's existing gold CoT at
+      # PLAN/SOLVE/REFINE; COMMIT is schema-masked to zero.
+      dense_outcome_weight: 0.0
+      step_reward_weight: 0.15
+      step_reward_discount: 0.90
+      trajectory_length_weight: 0.0
+      target_output_length: 0.0
+
+    answer_generation_config:
+      max_new_tokens: 48
+      do_sample: False
+
+    hybrid_generation_config:
+      max_new_tokens: 48
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1.0e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: True
+    scheduler:
+      target: cosine_schedule_with_warmup
+      warmup_steps: 75
+      num_training_steps: 2048
+
+trainer:
+  max_epochs: 4
+  max_steps: -1
+  limit_train_batches: 512
+  val_check_interval: 1.0
+  check_val_every_n_epoch: 1
+  gradient_clip_val: 0.3
+
+callbacks:
+  - target: lightning.pytorch.callbacks.ModelCheckpoint
+    save_last: True
+    save_top_k: 1
+    mode: max
+    monitor: monitor
+    auto_insert_metric_name: False
+    filename: "epoch{epoch}__step{step}__monitor{monitor:.6f}"
+    save_weights_only: False
+  - target: lightning.pytorch.callbacks.EarlyStopping
+    monitor: monitor
+    mode: max
+    patience: 4
+    min_delta: 0.0
+    check_finite: True
+    verbose: True
+  - target: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 0
+  pin_memory: False
+  persistent_workers: False

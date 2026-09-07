@@ -1,0 +1,204 @@
+seed: ~
+
+model:
+  target: src.models.trace_bridge.LitTRACEBridge
+  model_kwargs:
+    model_id: Qwen3-4B-Instruct
+    llm_path: ${oc.env:TRACE_MODEL_PATH}
+    sft_method: trace-bridge-hybrid-compact-anchor-gate
+    chat_template: False
+    trust_remote_code: False
+    torch_dtype: bfloat16
+    attn_implementation: ~
+    do_trace_rl: False
+
+    do_lora: True
+    lora_config:
+      r: 64
+      lora_alpha: 32
+      target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+
+    readcot_config:
+      n_latents: 8
+      answer_loss_weight: 0.0
+      lambda_anchor: 1.0
+
+      lambda_dep: 0.04
+      lambda_res: 0.015
+      lambda_anchor_gate: 0.1
+      dependency_threshold: 0.5
+      center_relation_probs: True
+      negative_edge_confidence: 0.25
+      dep_pos_weight_max: 4.0
+      dep_loss_clamp: 1.5
+
+      detach_explicit_teacher: True
+      explicit_feature_mode: packed
+      implicit_latent_mode: block
+      block_latent_query_scale: 0.1
+
+      aux_warmup_steps: 300
+      aux_decay_start_step: 3000
+      aux_decay_end_step: 9000
+      aux_min_scale: 0.0
+      anchor_warmup_steps: 300
+      anchor_decay_start_step: 12000
+      anchor_decay_end_step: 18000
+      anchor_min_scale: 0.8
+      anchor_gate_warmup_steps: 300
+      anchor_gate_decay_start_step: 12000
+      anchor_gate_decay_end_step: 18000
+      anchor_gate_min_scale: 0.8
+
+      use_hybrid: True
+      use_anchor_loss: True
+      hybrid_seed_anchor_header: True
+      n_anchors: 2
+      anchor_strategy: dependency_critical
+      anchor_alpha: 1.0
+      anchor_beta: 1.0
+      anchor_gamma: 0.2
+      anchor_length_penalty: 0.03
+      anchor_text_mode: compact_equation
+      compact_anchor_max_chars: 72
+
+      use_anchor_gate: True
+      anchor_gate_apply_to_latents: True
+      anchor_gate_scale: 0.5
+
+      relation_hidden_size: 1024
+      bridge_hidden_size: 1024
+      residual_proj_size: 1024
+      normalize_residual_mse: True
+      residual_loss_type: smooth_l1
+      residual_mse_clamp: ~
+      residual_cosine_weight: 0.1
+      dropout: 0.0
+
+    trace_bridge_config:
+      use_trace_view_embeddings: True
+      use_trace_step_view_embeddings: True
+      max_trace_views: 32
+      trace_view_scale: 0.30
+      trace_step_view_scale: 0.15
+
+      stage1_path_weight: 0.14
+      path_anchor_count: 3
+      path_position_mix: 0.45
+      path_direction_mix: 0.35
+      path_step_mix: 0.15
+      path_noncollapse_mix: 0.05
+      path_noncollapse_margin: 0.02
+      stage1_progress_anchor_mix: 0.45
+      stage1_progress_anchor_sigma: 0.18
+      stage1_latent_query_noise_std: 0.0
+
+      stage1_multiview_weight: 0.22
+      stage1_multiview_noise_std: 0.035
+      use_multiview_teacher: True
+      multiview_teacher_temperatures: [0.50, 0.70, 1.35, 1.75]
+      multiview_teacher_progress_bias: 0.95
+      multiview_teacher_progress_shifts: [-0.28, -0.14, 0.14, 0.28, 0.0]
+      multiview_teacher_progress_sigma: 0.18
+      multiview_teacher_pattern_bias: 0.12
+      multiview_teacher_original_mix: 0.20
+      multiview_signature_source: residuals
+      multiview_min_signature_distance: 0.16
+      multiview_diversity_weight: 0.85
+      multiview_consistency_weight: 0.0
+      rl_signature_source: residuals
+
+      signature_mean_weight: 0.5
+      signature_last_weight: 0.5
+      signature_trend_weight: 1.0
+      signature_delta_weight: 1.0
+      noncollapse_margin: 0.03
+
+      save_trace_visual_info: True
+      trace_visual_record_limit: 256
+      trace_visual_group_views: 1
+
+    trace_rl_config:
+      group_size: 8
+      exp_batch_size: 4
+      n_train_samples_per_epoch: 512
+      clip_eps: 0.08
+      use_latent_loss: False
+      use_answer_loss: True
+      average_per_token_loss: True
+      clip_grad_norm: 1.0
+      temperature: 0.8
+      top_p: 0.95
+
+      output_length_penalty_weight: 0.01
+      target_output_length: 34.0
+      trace_reward_weight: 0.10
+      trace_bonus_clip: 0.25
+      max_modes: 3
+      mode_merge_threshold: 0.82
+      pos_mode_fit_weight: 0.12
+      mode_diversity_weight: 0.05
+      neg_repulsion_weight: 0.10
+      neg_margin: 0.35
+      step_coherence_weight: 0.02
+      noncollapse_weight: 0.02
+      stage2_sft_replay_weight: 0.10
+
+    answer_generation_config:
+      max_new_tokens: 96
+      do_sample: False
+
+    hybrid_generation_config:
+      max_new_tokens: 48
+      do_sample: False
+
+  training_kwargs:
+    optimizer:
+      target: torch.optim.AdamW
+      lr: 1.0e-5
+      weight_decay: 0.01
+      foreach: False
+    use_scheduler: True
+    scheduler:
+      target: cosine_schedule_with_warmup
+      warmup_steps: 600
+      num_training_steps: 18000
+
+trainer:
+  max_epochs: 50
+  max_steps: -1
+  val_check_interval: 1.0
+  check_val_every_n_epoch: 1
+  gradient_clip_val: 0.3
+
+callbacks:
+  - target: lightning.pytorch.callbacks.ModelCheckpoint
+    save_last: True
+    save_top_k: 1
+    mode: max
+    monitor: monitor
+    auto_insert_metric_name: False
+    filename: "epoch{epoch}__step{step}__monitor{monitor:.3f}"
+    save_weights_only: True
+  - target: lightning.pytorch.callbacks.EarlyStopping
+    monitor: monitor
+    mode: max
+    patience: 4
+    min_delta: 0.001
+    check_on_train_epoch_end: False
+  - target: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+dataloader:
+  batch_size: 1
+  val_batch_size: 1
+  num_workers: 4
+  pin_memory: True
+  persistent_workers: False
