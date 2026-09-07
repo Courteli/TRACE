@@ -2,9 +2,13 @@
 
 整理日期：2026-09-07。主版本为 **TRACE Role-Native v9**；历史消融与旧版本分别归档，不与 v9 主实验混用。本仓库从独立副本整理，未改动正在训练的源目录、checkpoint 或进程。
 
+两条后续改进路线已单独归档：**[v9 纠错验证版](versions/v9_correctness_validation/README.md)** 和 **[结构统一的新方法版](versions/next_structured_method/README.md)**。先看 **[两版位置与改进总览](docs/VERSION_ROADMAP.md)**。两版目前均为 `DESIGN_ONLY`：只有方案、预留代码位置和验收清单，尚无改进版实现/测试/结果，不替代当前 v9。
+
 | 目录 | 内容 |
 | --- | --- |
 | `main/native_v9/` | 当前主代码、模型配置、三阶段训练、严格验证、谱系检查和单元测试 |
+| `versions/v9_correctness_validation/` | v9 纠错验证版方案：输入、梯度、噪声、概率一致性；尚未实现 |
+| `versions/next_structured_method/` | 新方法版方案：统一角色目标、固定教师与同机制 SFT/RL；尚未实现 |
 | `ablations/legacy_trace_colar/` | 历史 Stage1/Stage2、MultiPath、Trajectory 消融及其配套源码 |
 | `ablations/requested_suite_20260705/` | 历史 no-hard / no-mode / no-filter 队列和几何分析工具 |
 | `archive/` | pre-v9、role-v1、VB-v1/v2/v4/v5/v6/v7/v8 的代码快照；未找到独立 v3 源目录，不补造 |

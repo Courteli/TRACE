@@ -21,6 +21,13 @@
 
 主目录还保留 CoT、CoLaR、iCoT、Coconut、Distill、TRACE-Bridge/MultiPath 等已有基础实现。存在代码不等于该 baseline 已在 v9 协议下完成实验。
 
+## 后续改进版本（设计文档，不是现成代码）
+
+- [v9 纠错验证版](../versions/v9_correctness_validation/README.md)：保留原角色架构，安排输入、COMMIT 梯度、噪声和采样概率修复。
+- [结构统一的新方法版](../versions/next_structured_method/README.md)：规划六段 SOLVE、READOUT、统一目标和固定教师。
+
+各版的 `code/README.md` 标明未来代码位置，`DESIGN.md` 链接本页中的原始文件作为修改依据，`ACCEPTANCE.md` 的项目均尚未执行。详细区别与状态见 [VERSION_ROADMAP.md](VERSION_ROADMAP.md)。不得把这些目录计入已实现的主代码或已完成的消融。
+
 ## 原样归档
 
 `archive/` 和 `ablations/` 中的代码保留所属历史版本，不进行跨版本拼接。早期代码可能依赖历史 checkpoint、旧环境和绝对路径；不能作为 v9 的初始化来源。

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "version_id": "next_structured_method",
+  "display_name": "结构统一的新方法版",
+  "status": "DESIGN_ONLY",
+  "updated_on": "2026-09-07",
+  "design_discussion_date": "2026-09-05",
+  "baseline_commit": "f982ee102ca3d29dc0e5c0e8af424c9d896d4050",
+  "baseline_path": "main/native_v9",
+  "documentation_ready": true,
+  "implementation_code_present": false,
+  "implementation_commit": null,
+  "planned_code_root": "versions/next_structured_method/code",
+  "tests": {
+    "status": "NOT_IMPLEMENTED_OR_RUN",
+    "passed": null
+  },
+  "training": {
+    "status": "NOT_RUN",
+    "run_directory": null
+  },
+  "results_available": false,
+  "replaces_current_native_v9": false,
+  "notes": [
+    "This directory contains design documentation and acceptance criteria, not an implemented model.",
+    "Original native-v9 tests/results do not validate this proposed version."
+  ]
+}
